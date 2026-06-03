@@ -4,6 +4,8 @@ import { ToastProvider } from './hooks/useToast';
 import AdminGate from './components/ui/AdminGate';
 import AppLayout from './components/layout/AppLayout';
 import Dashboard from './pages/Dashboard';
+import Analytics from './pages/Analytics';
+import Settings from './pages/Settings';
 import SiteOverview from './pages/SiteOverview';
 import BrandSettings from './pages/BrandSettings';
 import BlogManager from './pages/BlogManager';
@@ -16,6 +18,8 @@ const router = createBrowserRouter([
     element: <AppLayout />,
     children: [
       { index: true, element: <Dashboard /> },
+      { path: 'analytics', element: <Analytics /> },
+      { path: 'settings', element: <Settings /> },
       { path: 'site/:siteId', element: <SiteOverview /> },
       { path: 'site/:siteId/brand', element: <BrandSettings /> },
       { path: 'site/:siteId/blog', element: <BlogManager /> },

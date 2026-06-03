@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, NavLink } from 'react-router-dom';
 import { useSites } from '../../context/SitesContext';
 import CreateSiteModal from '../sites/CreateSiteModal';
@@ -9,12 +9,28 @@ function statusDot(status) {
   return 'bg-muted';
 }
 
+const navLinkCls = ({ isActive }) =>
+  `flex items-center gap-2.5 px-4 py-2 text-sm rounded-md mx-2 transition-colors ${
+    isActive
+      ? 'bg-elevated text-primary'
+      : 'text-muted hover:text-primary hover:bg-elevated'
+  }`;
+
 export default function Sidebar() {
-  const { sites, activeSiteId, setActiveSiteId, isLoading } = useSites();
+  const { sites, setActiveSiteId, isLoading } = useSites();
   const [expandedId, setExpandedId] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Auto-expand the active site based on current URL
+  useEffect(() => {
+    const match = location.pathname.match(/^\/site\/([^/]+)/);
+    if (match) {
+      const id = isNaN(match[1]) ? match[1] : Number(match[1]);
+      setExpandedId(id);
+    }
+  }, [location.pathname]);
 
   function handleSiteClick(site) {
     setActiveSiteId(site.id);
@@ -33,21 +49,41 @@ export default function Sidebar() {
     <>
       <aside className="w-60 flex-shrink-0 bg-surface border-r border-border flex flex-col h-screen fixed left-0 top-0">
         {/* Header */}
-        <div className="p-4 border-b border-border">
-          <div className="flex items-center gap-2 mb-3">
+        <div className="px-4 py-4 border-b border-border">
+          <div className="flex items-center gap-2">
             <span className="text-primary text-lg">⌘</span>
-            <span className="text-primary font-semibold text-sm">Command Center</span>
+            <span className="text-primary font-semibold text-sm">Brand Command Center</span>
           </div>
-          <button
-            onClick={() => setModalOpen(true)}
-            className="w-full border border-border rounded-md py-1.5 text-muted text-sm hover:text-primary hover:border-accent transition-colors flex items-center justify-center gap-1"
-          >
-            <span className="text-base leading-none">+</span> New Site
-          </button>
         </div>
 
-        {/* Sites list */}
+        {/* Global navigation */}
+        <div className="py-3 border-b border-border">
+          <p className="text-muted text-xs font-semibold uppercase tracking-widest px-4 mb-1.5">Navigation</p>
+          <NavLink to="/" end className={navLinkCls}>
+            <span className="text-base leading-none">▣</span>
+            <span>Dashboard</span>
+          </NavLink>
+          <NavLink to="/analytics" className={navLinkCls}>
+            <span className="text-base leading-none">↗</span>
+            <span>Analytics</span>
+          </NavLink>
+          <NavLink to="/settings" className={navLinkCls}>
+            <span className="text-base leading-none">◈</span>
+            <span>Settings</span>
+          </NavLink>
+        </div>
+
+        {/* Sites section */}
         <div className="flex-1 overflow-y-auto py-3">
+          <div className="flex items-center justify-between px-4 mb-1.5">
+            <p className="text-muted text-xs font-semibold uppercase tracking-widest">Sites</p>
+            <button
+              onClick={() => setModalOpen(true)}
+              className="text-muted hover:text-accent transition-colors text-lg leading-none"
+              title="New Site"
+            >+</button>
+          </div>
+
           {isLoading ? (
             <div className="px-4 flex flex-col gap-2">
               {[1,2,3].map(i => (
@@ -55,10 +91,10 @@ export default function Sidebar() {
               ))}
             </div>
           ) : sites.length === 0 ? (
-            <p className="text-muted text-xs text-center py-8">No sites yet</p>
+            <p className="text-muted text-xs text-center py-8">No sites yet.<br />Click + to create one.</p>
           ) : (
             sites.map(site => {
-              const isExpanded = expandedId === site.id;
+              const isExpanded = expandedId === site.id || expandedId === String(site.id);
               return (
                 <div key={site.id}>
                   <button
@@ -66,7 +102,8 @@ export default function Sidebar() {
                     className="w-full flex items-center gap-2.5 px-4 py-2 hover:bg-elevated text-sm text-primary transition-colors text-left"
                   >
                     <span className={`w-2 h-2 rounded-full flex-shrink-0 ${statusDot(site.status)}`} />
-                    <span className="truncate">{site.name}</span>
+                    <span className="truncate flex-1">{site.name}</span>
+                    <span className="text-muted text-xs">{isExpanded ? '▴' : '▾'}</span>
                   </button>
                   {isExpanded && (
                     <div className="pb-1">
@@ -96,7 +133,7 @@ export default function Sidebar() {
 
         {/* Footer */}
         <div className="p-4 border-t border-border">
-          <p className="text-muted text-xs text-center">v1.0.0</p>
+          <p className="text-muted text-xs text-center">Project Umbra v1.0</p>
         </div>
       </aside>
 
