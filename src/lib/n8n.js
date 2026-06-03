@@ -10,7 +10,8 @@ async function safeFetch(url, options = {}) {
       const text = await res.text();
       return { data: null, error: text || `HTTP ${res.status}` };
     }
-    const data = await res.json();
+    const json = await res.json();
+    const data = (json && typeof json.data !== 'undefined') ? json.data : json;
     return { data, error: null };
   } catch (err) {
     return { data: null, error: err.message || 'Network error' };
