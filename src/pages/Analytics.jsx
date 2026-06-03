@@ -1,4 +1,33 @@
+import { useState, useEffect } from 'react';
+import { getAnalytics } from '../lib/n8n';
+import Spinner from '../components/ui/Spinner';
+
+function StatCard({ label, value, note }) {
+  return (
+    <div className="bg-surface border border-border rounded-md p-5">
+      <p className="text-muted text-xs font-semibold uppercase tracking-wide mb-2">{label}</p>
+      <p className="text-primary text-3xl font-bold mb-1">{value ?? '—'}</p>
+      {note && <p className="text-muted text-xs">{note}</p>}
+    </div>
+  );
+}
+
 export default function Analytics() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  async function load() {
+    setLoading(true);
+    setError(null);
+    const { data: result, error: err } = await getAnalytics();
+    if (err) setError(err);
+    else setData(result);
+    setLoading(false);
+  }
+
+  useEffect(() => { load(); }, []);
+
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-8">
@@ -6,24 +35,23 @@ export default function Analytics() {
         <p className="text-muted text-sm mt-1">Portfolio-wide performance across all sites</p>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        {[
-          { label: 'Total Subscribers', value: '—', note: 'Across all sites' },
-          { label: 'Total Posts', value: '—', note: 'Published' },
-          { label: 'Active Sites', value: '—', note: 'Currently live' },
-        ].map(card => (
-          <div key={card.label} className="bg-surface border border-border rounded-md p-5">
-            <p className="text-muted text-xs font-semibold uppercase tracking-wide mb-2">{card.label}</p>
-            <p className="text-primary text-3xl font-bold mb-1">{card.value}</p>
-            <p className="text-muted text-xs">{card.note}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="bg-surface border border-border rounded-md p-8 text-center">
-        <p className="text-muted text-sm">Analytics dashboard coming soon.</p>
-        <p className="text-muted text-xs mt-2">Subscriber growth, post performance, and traffic data will appear here.</p>
-      </div>
+      {loading ? (
+        <div className="flex items-center justify-center py-32">
+          <Spinner size="lg" className="text-accent" />
+        </div>
+      ) : error ? (
+        <div className="flex flex-col items-center gap-4 py-32">
+          <p className="text-status-red text-sm">{error}</p>
+          <button onClick={load} className="text-accent text-sm hover:underline">Retry</button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-4 gap-4 mb-8">
+          <StatCard label="Total Sites" value={data?.total_sites} note="In portfolio" />
+          <StatCard label="Active Sites" value={data?.active_sites} note="Currently live" />
+          <StatCard label="Total Posts" value={data?.total_posts} note="Published" />
+          <StatCard label="Total Subscribers" value={data?.total_subscribers} note="Across all sites" />
+        </div>
+      )}
     </div>
   );
 }

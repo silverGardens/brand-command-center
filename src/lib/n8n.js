@@ -79,3 +79,57 @@ export async function triggerDeploy(siteId) {
     body: JSON.stringify({ site_id: siteId }),
   });
 }
+
+export async function getAnalytics() {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_GET_ANALYTICS);
+}
+
+// Editorial pipeline
+export async function generateIdeas(siteId) {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_GENERATE_IDEAS, {
+    method: 'POST',
+    body: JSON.stringify({ site_id: siteId }),
+  });
+}
+
+export async function researchPost(siteId, postId) {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_RESEARCH_POST, {
+    method: 'POST',
+    body: JSON.stringify({ site_id: siteId, post_id: postId }),
+  });
+}
+
+export async function writeDraft(siteId, postId) {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_WRITE_DRAFT, {
+    method: 'POST',
+    body: JSON.stringify({ site_id: siteId, post_id: postId }),
+  });
+}
+
+export async function agentReviewPost(siteId, postId) {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_AGENT_REVIEW, {
+    method: 'POST',
+    body: JSON.stringify({ site_id: siteId, post_id: postId }),
+  });
+}
+
+export async function planEdit(siteId, postId, instruction) {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_PLAN_EDIT, {
+    method: 'POST',
+    body: JSON.stringify({ site_id: siteId, post_id: postId, instruction }),
+  });
+}
+
+export async function executeEdit(siteId, postId, plan, currentContent) {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_EXECUTE_EDIT, {
+    method: 'POST',
+    body: JSON.stringify({ site_id: siteId, post_id: postId, plan, current_content: currentContent }),
+  });
+}
+
+export async function approvePost(siteId, postId) {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_APPROVE_POST, {
+    method: 'POST',
+    body: JSON.stringify({ site_id: siteId, post_id: postId }),
+  });
+}
