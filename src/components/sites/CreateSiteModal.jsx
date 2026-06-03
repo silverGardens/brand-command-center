@@ -1,0 +1,95 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { createSite } from '../../lib/n8n';
+import { useSites } from '../../context/SitesContext';
+import { useToast } from '../../hooks/useToast';
+import ColorInput from '../ui/ColorInput';
+import Spinner from '../ui/Spinner';
+
+function slugify(str) {
+  return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+export default function CreateSiteModal({ isOpen, onClose }) {
+  const navigate = useNavigate();
+  const { refreshSites } = useSites();
+  const { showToast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({
+    name: '', slug: '', niche: '', tagline: '',
+    primaryColor: '#2563EB', secondaryColor: '#1C2128',
+  });
+
+  useEffect(() => {
+    if (form.name) {
+      setForm(f => ({ ...f, slug: slugify(f.name) }));
+    }
+  }, [form.name]);
+
+  if (!isOpen) return null;
+
+  function set(key, val) {
+    setForm(f => ({ ...f, [key]: val }));
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setLoading(true);
+    const { data, error } = await createSite(form);
+    setLoading(false);
+    if (error) {
+      showToast(error, 'error');
+      return;
+    }
+    await refreshSites();
+    showToast('Site created! Check the sidebar.', 'success');
+    onClose();
+    const newId = data?.site?.id;
+    if (newId) navigate(`/site/${newId}`);
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="bg-elevated border border-border rounded-md max-w-lg w-full p-8 relative">
+        <button onClick={onClose} className="absolute top-4 right-4 text-muted hover:text-primary text-xl leading-none">&times;</button>
+        <h2 className="text-primary text-xl font-semibold mb-6">Create New Site</h2>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div>
+            <label className="text-xs font-medium text-muted uppercase tracking-wide block mb-1.5">Site Name *</label>
+            <input required value={form.name} onChange={e => set('name', e.target.value)}
+              className="w-full bg-surface border border-border rounded-md px-3 py-2.5 text-primary text-sm placeholder-muted focus:outline-none focus:border-accent"
+              placeholder="My Awesome Site" />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-muted uppercase tracking-wide block mb-1.5">Slug *</label>
+            <input required value={form.slug} onChange={e => set('slug', slugify(e.target.value))}
+              className="w-full bg-surface border border-border rounded-md px-3 py-2.5 text-primary text-sm placeholder-muted focus:outline-none focus:border-accent font-mono"
+              placeholder="my-awesome-site" />
+            {form.slug && <p className="text-muted text-xs mt-1">site-url: {form.slug}.netlify.app</p>}
+          </div>
+          <div>
+            <label className="text-xs font-medium text-muted uppercase tracking-wide block mb-1.5">Niche / Topic</label>
+            <input value={form.niche} onChange={e => set('niche', e.target.value)}
+              className="w-full bg-surface border border-border rounded-md px-3 py-2.5 text-primary text-sm placeholder-muted focus:outline-none focus:border-accent"
+              placeholder="e.g. AI Productivity, Pickleball" />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-muted uppercase tracking-wide block mb-1.5">Tagline</label>
+            <input value={form.tagline} onChange={e => set('tagline', e.target.value)}
+              className="w-full bg-surface border border-border rounded-md px-3 py-2.5 text-primary text-sm placeholder-muted focus:outline-none focus:border-accent"
+              placeholder="One-line description" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <ColorInput label="Primary Color" value={form.primaryColor} onChange={v => set('primaryColor', v)} />
+            <ColorInput label="Secondary Color" value={form.secondaryColor} onChange={v => set('secondaryColor', v)} />
+          </div>
+          <button type="submit" disabled={loading}
+            className="mt-2 bg-accent hover:bg-accent-hover disabled:opacity-60 text-white rounded-md py-2.5 font-medium text-sm transition-colors flex items-center justify-center gap-2">
+            {loading && <Spinner />}
+            {loading ? 'Creating...' : 'Create Site'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
