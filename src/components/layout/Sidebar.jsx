@@ -43,6 +43,7 @@ export default function Sidebar() {
     { to: `/site/${id}`, label: 'Overview' },
     { to: `/site/${id}/brand`, label: 'Brand' },
     { to: `/site/${id}/blog`, label: 'Blog' },
+    { to: `/site/${id}/social`, label: 'Social' },
     { to: `/site/${id}/subscribers`, label: 'Subscribers' },
   ];
 
