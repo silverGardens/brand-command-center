@@ -50,12 +50,15 @@ export default function SiteOverview() {
   }
 
   async function handleTemplateChange(newId) {
-    setTemplateId(newId);
     setSavingTemplate(true);
     const { error: err } = await setTemplatePref(siteId, newId);
     setSavingTemplate(false);
-    if (err) showToast(err, 'error');
-    else showToast('Template preference saved.', 'success');
+    if (err) {
+      showToast(err, 'error');
+    } else {
+      setTemplateId(newId);
+      showToast('Template preference saved.', 'success');
+    }
   }
 
   if (loading) return (
