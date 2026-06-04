@@ -179,3 +179,39 @@ export async function deleteSocialPost(siteId, socialPostId) {
     body: JSON.stringify({ site_id: siteId, id: socialPostId }),
   });
 }
+
+// Email sequences & newsletter
+export async function getEmailSequences(siteId) {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_GET_EMAIL_SEQUENCES, {
+    method: 'POST',
+    body: JSON.stringify({ site_id: siteId }),
+  });
+}
+
+export async function saveEmailSequence(siteId, sequenceData) {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_SAVE_EMAIL_SEQUENCE, {
+    method: 'POST',
+    body: JSON.stringify({ site_id: siteId, ...sequenceData }),
+  });
+}
+
+export async function getNewsletterIssues(siteId) {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_GET_NEWSLETTER_ISSUES, {
+    method: 'POST',
+    body: JSON.stringify({ site_id: siteId }),
+  });
+}
+
+export async function saveNewsletterIssue(siteId, issueData) {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_SAVE_NEWSLETTER_ISSUE, {
+    method: 'POST',
+    body: JSON.stringify({ site_id: siteId, ...issueData }),
+  });
+}
+
+export async function generateNewsletterIssue(siteId) {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_GENERATE_NEWSLETTER, {
+    method: 'POST',
+    body: JSON.stringify({ site_id: siteId }),
+  });
+}
