@@ -12,6 +12,7 @@ import BlogManager from './pages/BlogManager';
 import BlogPostEditor from './pages/BlogPostEditor';
 import Subscribers from './pages/Subscribers';
 import HumanReview from './pages/HumanReview';
+import TemplateBrandSettings from './pages/TemplateBrandSettings';
 
 const router = createBrowserRouter([
   {
@@ -28,6 +29,7 @@ const router = createBrowserRouter([
       { path: 'site/:siteId/blog/:postId', element: <BlogPostEditor /> },
       { path: 'site/:siteId/blog/:postId/review', element: <HumanReview /> },
       { path: 'site/:siteId/subscribers', element: <Subscribers /> },
+      { path: 'template/:templateId', element: <TemplateBrandSettings /> },
     ],
   },
 ]);
