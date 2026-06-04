@@ -136,3 +136,10 @@ export async function approvePost(siteId, postId) {
     body: JSON.stringify({ site_id: siteId, post_id: postId }),
   });
 }
+
+export async function setTemplatePref(siteId, templateId) {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_SET_TEMPLATE, {
+    method: 'POST',
+    body: JSON.stringify({ site_id: siteId, template_id: templateId }),
+  });
+}
