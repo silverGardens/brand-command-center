@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, NavLink } from 'react-router-dom';
 import { useSites } from '../../context/SitesContext';
 import CreateSiteModal from '../sites/CreateSiteModal';
+import { TEMPLATES } from '../../lib/templates';
 
 function statusDot(status) {
   if (status === 'active') return 'bg-status-green';
@@ -71,6 +72,27 @@ export default function Sidebar() {
             <span className="text-base leading-none">◈</span>
             <span>Settings</span>
           </NavLink>
+        </div>
+
+        {/* Templates section */}
+        <div className="py-3 border-b border-border">
+          <p className="text-muted text-xs font-semibold uppercase tracking-widest px-4 mb-1.5">Templates</p>
+          {TEMPLATES.map(template => (
+            <div key={template.id}>
+              <NavLink
+                to={`/template/${template.id}`}
+                className={({ isActive }) =>
+                  `flex items-center gap-2.5 px-4 py-2 text-sm rounded-md mx-2 transition-colors ${
+                    isActive ? 'bg-elevated text-primary' : 'text-muted hover:text-primary hover:bg-elevated'
+                  }`
+                }
+              >
+                <span className="text-base leading-none">◻</span>
+                <span className="truncate flex-1">{template.name}</span>
+                <span className="text-muted text-xs bg-elevated border border-border px-1.5 py-0.5 rounded text-[10px]">TPL</span>
+              </NavLink>
+            </div>
+          ))}
         </div>
 
         {/* Sites section */}
