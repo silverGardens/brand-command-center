@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { getSiteDetail, updateBrand } from '../lib/n8n';
+import { useSites } from '../context/SitesContext';
 import { useToast } from '../hooks/useToast';
 import ColorInput from '../components/ui/ColorInput';
 import Spinner from '../components/ui/Spinner';
@@ -29,7 +30,13 @@ const inputCls = "w-full bg-elevated border border-border rounded-md px-3 py-2.5
 
 export default function BrandSettings() {
   const { siteId } = useParams();
+  const { sites } = useSites();
   const { showToast } = useToast();
+
+  // umbra_sites has no numeric id column — slug is the unique key n8n looks up by.
+  // siteId from the URL is the n8n auto-row-number; resolve the actual slug here.
+  const currentSite = sites.find(s => String(s.id) === siteId);
+  const siteSlug = currentSite?.slug ?? siteId;
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -42,8 +49,9 @@ export default function BrandSettings() {
   });
 
   useEffect(() => {
+    if (!siteSlug) return;
     async function load() {
-      const { data, error } = await getSiteDetail(siteId);
+      const { data, error } = await getSiteDetail(siteSlug);
       if (error) { showToast(error, 'error'); setLoading(false); return; }
       const bc = data?.brand_config ?? {};
       const site = data?.site ?? {};
@@ -56,13 +64,13 @@ export default function BrandSettings() {
       setLoading(false);
     }
     load();
-  }, [siteId]);
+  }, [siteSlug]);
 
   function set(key, val) { setForm(f => ({ ...f, [key]: val })); }
 
   async function handleSave() {
     setSaving(true);
-    const { error } = await updateBrand(siteId, form);
+    const { error } = await updateBrand(siteSlug, form);
     setSaving(false);
     if (error) showToast(error, 'error');
     else showToast('Brand settings saved!', 'success');
