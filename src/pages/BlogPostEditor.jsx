@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getSiteDetail, savePost } from '../lib/n8n';
+import { getSiteDetail, savePost, analyzeSEO } from '../lib/n8n';
+import SeoPanel from '../components/seo/SeoPanel';
 import { useToast } from '../hooks/useToast';
 import Spinner from '../components/ui/Spinner';
 
@@ -28,6 +29,10 @@ export default function BlogPostEditor() {
   });
   const [tagInput, setTagInput] = useState('');
   const [slugManuallySet, setSlugManuallySet] = useState(false);
+  const [seo, setSeo] = useState({
+    focusKeyword: '', metaTitle: '', metaDescription: '',
+    score: null, issues: [], analyzing: false,
+  });
 
   useEffect(() => {
     if (isNew) return;
@@ -48,6 +53,12 @@ export default function BlogPostEditor() {
           publishedAt: found.published_at ? found.published_at.split('T')[0] : '',
         });
         setSlugManuallySet(true);
+        setSeo(s => ({
+          ...s,
+          focusKeyword: found.seo_focus_keyword ?? '',
+          metaTitle: found.seo_meta_title ?? '',
+          metaDescription: found.seo_meta_description ?? '',
+        }));
       }
       setLoading(false);
     }
@@ -62,6 +73,24 @@ export default function BlogPostEditor() {
   }, [post.title, isNew, slugManuallySet]);
 
   function set(key, val) { setPost(p => ({ ...p, [key]: val })); }
+
+  function setSeoField(key, val) { setSeo(s => ({ ...s, [key]: val })); }
+
+  async function handleAnalyzeSEO() {
+    setSeo(s => ({ ...s, analyzing: true }));
+    const { data, error } = await analyzeSEO(siteId, postId, seo.focusKeyword, post.content);
+    if (error) {
+      showToast(error, 'error');
+      setSeo(s => ({ ...s, analyzing: false }));
+      return;
+    }
+    setSeo(s => ({
+      ...s,
+      analyzing: false,
+      score: data?.score ?? null,
+      issues: data?.issues ?? [],
+    }));
+  }
 
   function addTag(raw) {
     const tag = raw.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
@@ -96,6 +125,9 @@ export default function BlogPostEditor() {
       tags: post.tags,
       is_published: post.status === 'published',
       published_at: post.status === 'published' ? post.publishedAt || new Date().toISOString() : null,
+      seo_focus_keyword: seo.focusKeyword,
+      seo_meta_title: seo.metaTitle,
+      seo_meta_description: seo.metaDescription,
     };
     const { data, error } = await savePost(siteId, payload);
     setSaving(false);
@@ -256,6 +288,14 @@ export default function BlogPostEditor() {
             {saving && <Spinner />}
             {saving ? 'Saving...' : 'Save Post'}
           </button>
+          <SeoPanel
+            siteId={siteId}
+            postId={postId}
+            content={post.content}
+            seo={seo}
+            onChange={setSeoField}
+            onAnalyze={handleAnalyzeSEO}
+          />
         </div>
       </div>
     </div>
