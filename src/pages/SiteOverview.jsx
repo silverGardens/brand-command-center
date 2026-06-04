@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getSiteDetail, triggerDeploy } from '../lib/n8n';
+import { setTemplatePref } from '../lib/n8n';
 import { useToast } from '../hooks/useToast';
+import { TEMPLATES } from '../lib/templates';
 import StatusBadge from '../components/ui/StatusBadge';
 import Spinner from '../components/ui/Spinner';
 
@@ -22,13 +24,18 @@ export default function SiteOverview() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [deploying, setDeploying] = useState(false);
+  const [templateId, setTemplateId] = useState('default');
+  const [savingTemplate, setSavingTemplate] = useState(false);
 
   async function load() {
     setLoading(true);
     setError(null);
     const { data, error: err } = await getSiteDetail(siteId);
     if (err) setError(err);
-    else setDetail(data);
+    else {
+      setDetail(data);
+      if (data?.site?.template_id) setTemplateId(data.site.template_id);
+    }
     setLoading(false);
   }
 
@@ -40,6 +47,15 @@ export default function SiteOverview() {
     setDeploying(false);
     if (err) showToast(err, 'error');
     else showToast('Deploy triggered!', 'success');
+  }
+
+  async function handleTemplateChange(newId) {
+    setTemplateId(newId);
+    setSavingTemplate(true);
+    const { error: err } = await setTemplatePref(siteId, newId);
+    setSavingTemplate(false);
+    if (err) showToast(err, 'error');
+    else showToast('Template preference saved.', 'success');
   }
 
   if (loading) return (
@@ -107,6 +123,29 @@ export default function SiteOverview() {
         <StatCard label="Posts" value={posts.length} />
         <StatCard label="Status" value={site?.status ?? '—'} />
         <StatCard label="Created" value={createdDate} />
+      </div>
+
+      {/* Template */}
+      <div className="bg-surface border border-border rounded-md p-5 mb-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-primary text-sm font-semibold mb-0.5">Site Template</p>
+            <p className="text-muted text-xs">Layout structure used by this site.</p>
+          </div>
+          <div className="flex items-center gap-2">
+            {savingTemplate && <Spinner />}
+            <select
+              value={templateId}
+              onChange={e => handleTemplateChange(e.target.value)}
+              disabled={savingTemplate}
+              className="bg-elevated border border-border rounded-md px-3 py-2 text-primary text-sm focus:outline-none focus:border-accent disabled:opacity-60"
+            >
+              {TEMPLATES.map(t => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
+            </select>
+          </div>
+        </div>
       </div>
 
       {/* Recent Posts */}
