@@ -143,3 +143,10 @@ export async function setTemplatePref(siteId, templateId) {
     body: JSON.stringify({ site_id: siteId, template_id: templateId }),
   });
 }
+
+export async function analyzeSEO(siteId, postId, focusKeyword, content) {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_ANALYZE_SEO, {
+    method: 'POST',
+    body: JSON.stringify({ site_id: siteId, post_id: postId, focus_keyword: focusKeyword, content }),
+  });
+}
