@@ -150,3 +150,32 @@ export async function analyzeSEO(siteId, postId, focusKeyword, content) {
     body: JSON.stringify({ site_id: siteId, post_id: postId, focus_keyword: focusKeyword, content }),
   });
 }
+
+// Social pipeline
+export async function getSocialPosts(siteId, platform) {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_GET_SOCIAL_POSTS, {
+    method: 'POST',
+    body: JSON.stringify({ site_id: siteId, platform }),
+  });
+}
+
+export async function generateSocialContent(siteId, platform, postId) {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_GENERATE_SOCIAL, {
+    method: 'POST',
+    body: JSON.stringify({ site_id: siteId, platform, post_id: postId }),
+  });
+}
+
+export async function saveSocialPost(siteId, platform, postData) {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_SAVE_SOCIAL_POST, {
+    method: 'POST',
+    body: JSON.stringify({ site_id: siteId, platform, ...postData }),
+  });
+}
+
+export async function deleteSocialPost(siteId, socialPostId) {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_DELETE_SOCIAL_POST, {
+    method: 'POST',
+    body: JSON.stringify({ site_id: siteId, id: socialPostId }),
+  });
+}
