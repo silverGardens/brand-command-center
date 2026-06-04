@@ -57,9 +57,21 @@ export default function BrandSettings() {
       const site = data?.site ?? {};
       setForm(f => ({
         ...f,
-        siteName: site.name ?? '',
-        tagline: site.tagline ?? '',
-        ...bc,
+        siteName: site.name ?? f.siteName,
+        tagline: bc.tagline ?? site.tagline ?? f.tagline,
+        description: bc.description ?? f.description,
+        primaryColor: bc.primary_color ?? f.primaryColor,
+        secondaryColor: bc.secondary_color ?? f.secondaryColor,
+        accentColor: bc.accent_color ?? f.accentColor,
+        backgroundColor: bc.background_color ?? f.backgroundColor,
+        textColor: bc.text_color ?? f.textColor,
+        fontHeading: bc.font_heading ?? f.fontHeading,
+        fontBody: bc.font_body ?? f.fontBody,
+        logoUrl: bc.logo_url ?? f.logoUrl,
+        faviconUrl: bc.favicon_url ?? f.faviconUrl,
+        twitterUrl: bc.twitter_url ?? f.twitterUrl,
+        instagramUrl: bc.instagram_url ?? f.instagramUrl,
+        youtubeUrl: bc.youtube_url ?? f.youtubeUrl,
       }));
       setLoading(false);
     }
