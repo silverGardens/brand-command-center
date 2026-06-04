@@ -109,7 +109,7 @@ export default function SocialPipeline() {
   const [editModal, setEditModal] = useState(null);
   const [deleting, setDeleting] = useState(null);
 
-  const platform = PLATFORMS.find(p => p.id === activePlatform);
+  const platform = PLATFORMS.find(p => p.id === activePlatform) ?? PLATFORMS[0];
 
   const loadSocial = useCallback(async () => {
     setLoading(true);
