@@ -121,14 +121,15 @@ export default function BrandSettings() {
           </Section>
 
           <Section title="Colors">
+            <p className="text-xs text-muted -mt-2">These map directly to the live site. Save + Trigger Deploy to see changes.</p>
             <div className="grid grid-cols-2 gap-4">
-              <ColorInput label="Primary" value={form.primaryColor} onChange={v => set('primaryColor', v)} />
-              <ColorInput label="Secondary" value={form.secondaryColor} onChange={v => set('secondaryColor', v)} />
-              <ColorInput label="Accent" value={form.accentColor} onChange={v => set('accentColor', v)} />
-              <ColorInput label="Background" value={form.backgroundColor} onChange={v => set('backgroundColor', v)} />
-              <ColorInput label="Surface" value={form.surfaceColor} onChange={v => set('surfaceColor', v)} />
-              <ColorInput label="Text" value={form.textColor} onChange={v => set('textColor', v)} />
-              <ColorInput label="Muted Text" value={form.mutedColor} onChange={v => set('mutedColor', v)} />
+              <ColorInput label="Brand (Header + Buttons)" value={form.primaryColor} onChange={v => set('primaryColor', v)} />
+              <ColorInput label="Secondary Accent" value={form.secondaryColor} onChange={v => set('secondaryColor', v)} />
+              <ColorInput label="Highlight / Accent" value={form.accentColor} onChange={v => set('accentColor', v)} />
+              <ColorInput label="Page Background" value={form.backgroundColor} onChange={v => set('backgroundColor', v)} />
+              <ColorInput label="Card / Panel" value={form.surfaceColor} onChange={v => set('surfaceColor', v)} />
+              <ColorInput label="Body Text" value={form.textColor} onChange={v => set('textColor', v)} />
+              <ColorInput label="Muted / Subtle Text" value={form.mutedColor} onChange={v => set('mutedColor', v)} />
             </div>
           </Section>
 
@@ -184,30 +185,41 @@ export default function BrandSettings() {
                   {form.siteName ? form.siteName.toLowerCase().replace(/\s+/g,'-') : 'your-site'}.netlify.app
                 </span>
               </div>
-              {/* Mock header */}
-              <div className="px-4 py-3 flex items-center" style={{ backgroundColor: form.primaryColor }}>
-                {form.logoUrl
-                  ? <img src={form.logoUrl} alt="" className="h-6 object-contain" onError={e => e.target.style.display='none'} />
-                  : <span className="text-white font-semibold text-sm" style={{ fontFamily: form.fontHeading }}>
-                      {form.siteName || 'Your Site'}
-                    </span>
-                }
+              {/* Mock header — primary color bg, white text, matches Header.astro */}
+              <div className="px-4 py-3 flex items-center justify-between" style={{ backgroundColor: form.primaryColor }}>
+                <span className="text-white font-semibold text-sm" style={{ fontFamily: form.fontHeading }}>
+                  {form.logoUrl
+                    ? <img src={form.logoUrl} alt="" className="h-5 object-contain" onError={e => e.target.style.display='none'} />
+                    : form.siteName || 'Your Site'
+                  }
+                </span>
+                <div className="flex gap-3">
+                  {['Blog','About'].map(l => (
+                    <span key={l} className="text-xs" style={{ color: 'rgba(255,255,255,0.75)', fontFamily: form.fontBody }}>{l}</span>
+                  ))}
+                </div>
               </div>
-              {/* Mock hero */}
-              <div className="px-4 py-6" style={{ backgroundColor: form.backgroundColor }}>
-                <p className="text-sm font-semibold mb-1" style={{ color: form.textColor, fontFamily: form.fontHeading }}>
+              {/* Mock hero — page bg with tagline + CTA button */}
+              <div className="px-4 py-5" style={{ backgroundColor: form.backgroundColor }}>
+                <p className="text-sm font-bold mb-1" style={{ color: form.textColor, fontFamily: form.fontHeading }}>
                   {form.tagline || 'Your tagline here'}
                 </p>
-                <p className="text-xs opacity-60" style={{ color: form.textColor, fontFamily: form.fontBody }}>
-                  {form.description ? form.description.slice(0, 80) + (form.description.length > 80 ? '…' : '') : 'Site description will appear here...'}
+                <p className="text-xs mb-3" style={{ color: form.mutedColor, fontFamily: form.fontBody }}>
+                  {form.description ? form.description.slice(0, 60) + '…' : 'Site description...'}
                 </p>
+                <span className="inline-block text-xs font-semibold px-3 py-1 rounded text-white" style={{ backgroundColor: form.primaryColor, fontFamily: form.fontBody }}>
+                  Subscribe Free
+                </span>
               </div>
-              {/* Mock card */}
+              {/* Mock card — uses surfaceColor (matches .cover-card in site) */}
               <div className="px-4 pb-4" style={{ backgroundColor: form.backgroundColor }}>
-                <div className="rounded-md p-3 border" style={{ backgroundColor: form.secondaryColor, borderColor: form.primaryColor + '40' }}>
-                  <div className="h-2 rounded w-3/4 mb-2" style={{ backgroundColor: form.textColor, opacity: 0.6 }} />
-                  <div className="h-1.5 rounded w-full mb-1" style={{ backgroundColor: form.textColor, opacity: 0.3 }} />
-                  <div className="h-1.5 rounded w-2/3" style={{ backgroundColor: form.textColor, opacity: 0.3 }} />
+                <div className="rounded-md p-3 border" style={{ backgroundColor: form.surfaceColor, borderColor: 'rgba(148,163,184,0.12)' }}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-6 h-6 rounded flex-shrink-0" style={{ backgroundColor: form.primaryColor + '26' }} />
+                    <div className="h-2 rounded flex-1" style={{ backgroundColor: form.textColor, opacity: 0.6 }} />
+                  </div>
+                  <div className="h-1.5 rounded w-full mb-1" style={{ backgroundColor: form.textColor, opacity: 0.25 }} />
+                  <div className="h-1.5 rounded w-3/4" style={{ backgroundColor: form.textColor, opacity: 0.25 }} />
                 </div>
               </div>
             </div>
