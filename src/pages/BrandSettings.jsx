@@ -42,9 +42,10 @@ export default function BrandSettings() {
   const [form, setForm] = useState({
     siteName: '', tagline: '', description: '',
     primaryColor: '#2563EB', secondaryColor: '#1C2128', accentColor: '#E6EDF3',
-    backgroundColor: '#0F1117', textColor: '#E6EDF3',
+    backgroundColor: '#0F1117', surfaceColor: '#1E293B', textColor: '#E6EDF3', mutedColor: '#94A3B8',
     fontHeading: 'Inter', fontBody: 'Inter',
     logoUrl: '', faviconUrl: '',
+    contactEmail: '',
     twitterUrl: '', instagramUrl: '', youtubeUrl: '',
   });
 
@@ -64,7 +65,10 @@ export default function BrandSettings() {
         secondaryColor: bc.secondary_color ?? f.secondaryColor,
         accentColor: bc.accent_color ?? f.accentColor,
         backgroundColor: bc.background_color ?? f.backgroundColor,
+        surfaceColor: bc.surface_color ?? f.surfaceColor,
         textColor: bc.text_color ?? f.textColor,
+        mutedColor: bc.muted_color ?? f.mutedColor,
+        contactEmail: bc.contact_email ?? f.contactEmail,
         fontHeading: bc.font_heading ?? f.fontHeading,
         fontBody: bc.font_body ?? f.fontBody,
         logoUrl: bc.logo_url ?? f.logoUrl,
@@ -122,7 +126,9 @@ export default function BrandSettings() {
               <ColorInput label="Secondary" value={form.secondaryColor} onChange={v => set('secondaryColor', v)} />
               <ColorInput label="Accent" value={form.accentColor} onChange={v => set('accentColor', v)} />
               <ColorInput label="Background" value={form.backgroundColor} onChange={v => set('backgroundColor', v)} />
+              <ColorInput label="Surface" value={form.surfaceColor} onChange={v => set('surfaceColor', v)} />
               <ColorInput label="Text" value={form.textColor} onChange={v => set('textColor', v)} />
+              <ColorInput label="Muted Text" value={form.mutedColor} onChange={v => set('mutedColor', v)} />
             </div>
           </Section>
 
@@ -155,6 +161,12 @@ export default function BrandSettings() {
             <Field label="Twitter / X"><input className={inputCls} value={form.twitterUrl} onChange={e => set('twitterUrl', e.target.value)} placeholder="https://x.com/..." /></Field>
             <Field label="Instagram"><input className={inputCls} value={form.instagramUrl} onChange={e => set('instagramUrl', e.target.value)} placeholder="https://instagram.com/..." /></Field>
             <Field label="YouTube"><input className={inputCls} value={form.youtubeUrl} onChange={e => set('youtubeUrl', e.target.value)} placeholder="https://youtube.com/..." /></Field>
+          </Section>
+
+          <Section title="Contact">
+            <Field label="Contact Email">
+              <input className={inputCls} value={form.contactEmail} onChange={e => set('contactEmail', e.target.value)} placeholder="hello@yoursite.com" type="email" />
+            </Field>
           </Section>
         </div>
 
