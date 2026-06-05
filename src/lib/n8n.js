@@ -240,3 +240,43 @@ export async function disconnectPlatformAccount(platform) {
     body: JSON.stringify({ platform }),
   });
 }
+
+// Page builder & template system
+export async function getTemplateRegistry() {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_GET_TEMPLATE_REGISTRY);
+}
+
+export async function getPages(siteId) {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_GET_PAGES, {
+    method: 'POST',
+    body: JSON.stringify({ site_id: siteId }),
+  });
+}
+
+export async function savePage(siteId, pageData) {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_SAVE_PAGE, {
+    method: 'POST',
+    body: JSON.stringify({ site_id: siteId, ...pageData }),
+  });
+}
+
+export async function buildPageFromDescription(description) {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_BUILD_PAGE_DESCRIPTION, {
+    method: 'POST',
+    body: JSON.stringify({ description }),
+  });
+}
+
+export async function buildPageFromScreenshot(imageData) {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_BUILD_PAGE_SCREENSHOT, {
+    method: 'POST',
+    body: JSON.stringify({ image_data: imageData }),
+  });
+}
+
+export async function extractTemplate(siteId, pageSlug) {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_EXTRACT_TEMPLATE, {
+    method: 'POST',
+    body: JSON.stringify({ site_id: siteId, page_slug: pageSlug }),
+  });
+}

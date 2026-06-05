@@ -15,6 +15,9 @@ import HumanReview from './pages/HumanReview';
 import TemplateBrandSettings from './pages/TemplateBrandSettings';
 import SocialPipeline from './pages/SocialPipeline';
 import EmailSequences from './pages/EmailSequences';
+import SitePages from './pages/SitePages';
+import PageEditor from './pages/PageEditor';
+import PageBuilder from './pages/PageBuilder';
 
 const router = createBrowserRouter([
   {
@@ -33,6 +36,9 @@ const router = createBrowserRouter([
       { path: 'site/:siteId/subscribers', element: <Subscribers /> },
       { path: 'site/:siteId/social', element: <SocialPipeline /> },
       { path: 'site/:siteId/email', element: <EmailSequences /> },
+      { path: 'site/:siteId/pages', element: <SitePages /> },
+      { path: 'site/:siteId/pages/:pageSlug/edit', element: <PageEditor /> },
+      { path: 'page-builder', element: <PageBuilder /> },
       { path: 'template/:templateId', element: <TemplateBrandSettings /> },
     ],
   },

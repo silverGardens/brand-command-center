@@ -42,6 +42,7 @@ export default function Sidebar() {
   const subLinks = (id) => [
     { to: `/site/${id}`, label: 'Overview' },
     { to: `/site/${id}/brand`, label: 'Brand' },
+    { to: `/site/${id}/pages`, label: 'Pages' },
     { to: `/site/${id}/blog`, label: 'Blog' },
     { to: `/site/${id}/social`, label: 'Social' },
     { to: `/site/${id}/email`, label: 'Email' },
@@ -73,6 +74,10 @@ export default function Sidebar() {
           <NavLink to="/settings" className={navLinkCls}>
             <span className="text-base leading-none">◈</span>
             <span>Settings</span>
+          </NavLink>
+          <NavLink to="/page-builder" className={navLinkCls}>
+            <span className="text-base leading-none">⬡</span>
+            <span>Page Builder</span>
           </NavLink>
         </div>
 
