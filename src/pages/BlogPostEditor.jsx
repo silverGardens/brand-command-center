@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getSiteDetail, savePost, analyzeSEO } from '../lib/n8n';
 import SeoPanel from '../components/seo/SeoPanel';
+import DistributePanel from '../components/blog/DistributePanel';
 import { useToast } from '../hooks/useToast';
 import Spinner from '../components/ui/Spinner';
 
@@ -296,6 +297,9 @@ export default function BlogPostEditor() {
             onChange={setSeoField}
             onAnalyze={handleAnalyzeSEO}
           />
+          {!isNew && (
+            <DistributePanel siteId={siteId} postId={postId} />
+          )}
         </div>
       </div>
     </div>
