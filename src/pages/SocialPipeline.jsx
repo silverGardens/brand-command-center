@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { getSiteDetail, getSocialPosts, generateSocialContent, saveSocialPost, deleteSocialPost } from '../lib/n8n';
+import { getSiteDetail, getSocialPosts, generateSocialContent, saveSocialPost, deleteSocialPost, publishSocialPostNow } from '../lib/n8n';
 import { useToast } from '../hooks/useToast';
 import Spinner from '../components/ui/Spinner';
 
@@ -60,11 +60,18 @@ function GenerateModal({ posts, platform, onGenerate, onClose }) {
 
 function EditModal({ post, platform, onSave, onClose }) {
   const [content, setContent] = useState(post?.content ?? '');
+  const [status, setStatus] = useState(post?.status ?? 'draft');
+  const [scheduledAt, setScheduledAt] = useState(post?.scheduled_at ? post.scheduled_at.split('T')[0] : '');
   const [saving, setSaving] = useState(false);
 
   async function handleSave() {
     setSaving(true);
-    await onSave({ ...post, content, status: post?.status ?? 'draft' });
+    await onSave({
+      ...post,
+      content,
+      status,
+      scheduled_at: status === 'scheduled' && scheduledAt ? new Date(scheduledAt).toISOString() : null,
+    });
     setSaving(false);
   }
 
@@ -82,6 +89,31 @@ function EditModal({ post, platform, onSave, onClose }) {
         <p className={`text-xs mb-4 text-right ${content.length > platform.limit ? 'text-status-red' : 'text-muted'}`}>
           {content.length}/{platform.limit}
         </p>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex-1">
+            <label className="text-xs text-muted uppercase tracking-wide block mb-1">Status</label>
+            <select
+              value={status}
+              onChange={e => setStatus(e.target.value)}
+              className="w-full bg-elevated border border-border rounded-md px-3 py-2 text-primary text-sm focus:outline-none focus:border-accent"
+            >
+              <option value="draft">Draft</option>
+              <option value="scheduled">Scheduled</option>
+              <option value="published">Published</option>
+            </select>
+          </div>
+          {status === 'scheduled' && (
+            <div className="flex-1">
+              <label className="text-xs text-muted uppercase tracking-wide block mb-1">Schedule Date</label>
+              <input
+                type="date"
+                value={scheduledAt}
+                onChange={e => setScheduledAt(e.target.value)}
+                className="w-full bg-elevated border border-border rounded-md px-3 py-2 text-primary text-sm focus:outline-none focus:border-accent"
+              />
+            </div>
+          )}
+        </div>
         <div className="flex gap-3 justify-end">
           <button onClick={onClose} className="px-4 py-2 text-sm text-muted hover:text-primary transition-colors">Cancel</button>
           <button
@@ -108,6 +140,8 @@ export default function SocialPipeline() {
   const [generateModal, setGenerateModal] = useState(false);
   const [editModal, setEditModal] = useState(null);
   const [deleting, setDeleting] = useState(null);
+  const [publishing, setPublishing] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('all');
 
   const platform = PLATFORMS.find(p => p.id === activePlatform) ?? PLATFORMS[0];
 
@@ -157,6 +191,15 @@ export default function SocialPipeline() {
     loadSocial();
   }
 
+  async function handlePublishNow(id) {
+    setPublishing(id);
+    const { error } = await publishSocialPostNow(siteId, id);
+    setPublishing(null);
+    if (error) { showToast(error, 'error'); return; }
+    showToast('Published!', 'success');
+    loadSocial();
+  }
+
   return (
     <div className="max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-6">
@@ -193,6 +236,22 @@ export default function SocialPipeline() {
         ))}
       </div>
 
+      <div className="flex items-center gap-2 mb-4">
+        {['all', 'draft', 'scheduled', 'published'].map(s => (
+          <button
+            key={s}
+            onClick={() => setStatusFilter(s)}
+            className={`px-3 py-1 text-xs rounded-full border transition-colors ${
+              statusFilter === s
+                ? 'bg-accent text-white border-accent'
+                : 'text-muted border-border hover:text-primary'
+            }`}
+          >
+            {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
+          </button>
+        ))}
+      </div>
+
       {loading ? (
         <div className="flex justify-center py-20"><Spinner size="lg" className="text-accent" /></div>
       ) : posts.length === 0 ? (
@@ -214,12 +273,13 @@ export default function SocialPipeline() {
               <tr className="border-b border-border">
                 <th className="text-left px-6 py-3 text-muted text-xs uppercase tracking-wide font-medium">Content</th>
                 <th className="text-left px-6 py-3 text-muted text-xs uppercase tracking-wide font-medium">Status</th>
+                <th className="text-left px-6 py-3 text-muted text-xs uppercase tracking-wide font-medium">Scheduled</th>
                 <th className="text-left px-6 py-3 text-muted text-xs uppercase tracking-wide font-medium">Created</th>
                 <th className="text-right px-6 py-3 text-muted text-xs uppercase tracking-wide font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {posts.map(post => (
+              {posts.filter(post => statusFilter === 'all' || post.status === statusFilter).map(post => (
                 <tr key={post.id} className="border-b border-border last:border-0 hover:bg-elevated transition-colors">
                   <td className="px-6 py-3 max-w-sm">
                     <p className="text-primary text-sm truncate">{post.content}</p>
@@ -233,6 +293,11 @@ export default function SocialPipeline() {
                     </span>
                   </td>
                   <td className="px-6 py-3 text-muted text-sm">
+                    {post.scheduled_at
+                      ? new Date(post.scheduled_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                      : '—'}
+                  </td>
+                  <td className="px-6 py-3 text-muted text-sm">
                     {post.created_at
                       ? new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                       : '—'}
@@ -240,6 +305,16 @@ export default function SocialPipeline() {
                   <td className="px-6 py-3 text-right">
                     <div className="flex items-center gap-3 justify-end">
                       <button onClick={() => setEditModal(post)} className="text-xs text-accent hover:text-accent-hover transition-colors">Edit</button>
+                      {post.status !== 'published' && (
+                        <button
+                          onClick={() => handlePublishNow(post.id)}
+                          disabled={publishing === post.id}
+                          className="text-xs text-status-green/70 hover:text-status-green transition-colors disabled:opacity-40 flex items-center gap-1"
+                        >
+                          {publishing === post.id && <Spinner />}
+                          Publish Now
+                        </button>
+                      )}
                       <button
                         onClick={() => handleDelete(post.id)}
                         disabled={deleting === post.id}
