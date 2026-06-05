@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getSiteDetail, generateIdeas, researchPost, writeDraft, agentReviewPost } from '../lib/n8n';
 import { useToast } from '../hooks/useToast';
 import Spinner from '../components/ui/Spinner';
+import { normalizePost } from '../lib/normalize';
 
 const STAGES = [
   { key: 'idea',         label: 'Ideas',        color: 'text-yellow-400',  bg: 'bg-yellow-400/10' },
@@ -16,6 +17,7 @@ const STAGES = [
 
 function inferStage(post) {
   if (post.stage) return post.stage;
+  if (post.status) return post.status;
   return post.is_published ? 'published' : 'draft';
 }
 
@@ -52,7 +54,7 @@ export default function BlogManager() {
     setLoading(true);
     const { data, error } = await getSiteDetail(siteId);
     if (error) { showToast(error, 'error'); setLoading(false); return; }
-    setPosts(data?.posts ?? []);
+    setPosts((data?.posts ?? []).map(normalizePost));
     setLoading(false);
   }, [siteId]);
 

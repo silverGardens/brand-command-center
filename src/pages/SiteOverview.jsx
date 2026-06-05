@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getSiteDetail, triggerDeploy } from '../lib/n8n';
 import { setTemplatePref } from '../lib/n8n';
+import { normalizePost } from '../lib/normalize';
 import { useToast } from '../hooks/useToast';
 import { TEMPLATES } from '../lib/templates';
 import StatusBadge from '../components/ui/StatusBadge';
@@ -71,7 +72,8 @@ export default function SiteOverview() {
     </div>
   );
 
-  const { site, posts = [], subscriber_count, page_count } = detail ?? {};
+  const { site, posts: rawPosts = [], subscriber_count, page_count } = detail ?? {};
+  const posts = rawPosts.map(normalizePost);
   const recentPosts = posts.slice(0, 5);
 
   const createdDate = site?.created_at
