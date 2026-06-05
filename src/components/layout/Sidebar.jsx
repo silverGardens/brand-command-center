@@ -162,7 +162,7 @@ export default function Sidebar() {
 
         {/* Footer */}
         <div className="p-4 border-t border-border">
-          <p className="text-muted text-xs text-center">Project Umbra v1.0</p>
+          <p className="text-muted text-xs text-center">Project Umbra v3.0</p>
         </div>
       </aside>
 
