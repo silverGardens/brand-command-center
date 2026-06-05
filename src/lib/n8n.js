@@ -12,6 +12,10 @@ async function safeFetch(url, options = {}) {
     }
     const json = await res.json();
     const data = (json && typeof json.data !== 'undefined') ? json.data : json;
+    if (import.meta.env.DEV) {
+      const label = options?.body ? JSON.parse(options.body) : {};
+      console.log('[n8n audit]', url.split('/').pop(), JSON.stringify(data, null, 2));
+    }
     return { data, error: null };
   } catch (err) {
     return { data: null, error: err.message || 'Network error' };
