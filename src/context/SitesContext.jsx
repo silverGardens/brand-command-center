@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { getSites } from '../lib/n8n';
+import { normalizeSite } from '../lib/normalize';
 
 const SitesContext = createContext(null);
 
@@ -16,7 +17,7 @@ export function SitesProvider({ children }) {
     if (err) {
       setError(err);
     } else {
-      setSites(data?.sites ?? []);
+      setSites((data?.sites ?? []).map(normalizeSite));
     }
     setIsLoading(false);
   }, []);
