@@ -215,3 +215,28 @@ export async function generateNewsletterIssue(siteId) {
     body: JSON.stringify({ site_id: siteId }),
   });
 }
+
+export async function publishSocialPostNow(siteId, socialPostId) {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_PUBLISH_SOCIAL_POST, {
+    method: 'POST',
+    body: JSON.stringify({ site_id: siteId, id: socialPostId }),
+  });
+}
+
+export async function getConnectedAccounts() {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_GET_CONNECTED_ACCOUNTS);
+}
+
+export async function connectPlatformAccount(platform) {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_CONNECT_PLATFORM, {
+    method: 'POST',
+    body: JSON.stringify({ platform }),
+  });
+}
+
+export async function disconnectPlatformAccount(platform) {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_DISCONNECT_PLATFORM, {
+    method: 'POST',
+    body: JSON.stringify({ platform }),
+  });
+}
