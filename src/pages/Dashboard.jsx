@@ -17,6 +17,8 @@ export default function Dashboard() {
   const [modalOpen, setModalOpen] = useState(false);
 
   const activeBrands = brands.filter(b => b.status === 'active').length;
+  const totalRevenue = brands.reduce((sum, b) => sum + (Number(b.revenue) || 0), 0);
+  const totalSubscribers = brands.reduce((sum, b) => sum + (Number(b.subscriber_count) || 0), 0);
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -35,10 +37,11 @@ export default function Dashboard() {
 
       {brands.length > 0 ? (
         <>
-          <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-4 gap-4 mb-8">
             <StatCard label="Total Brands" value={brands.length} />
-            <StatCard label="Active Brands" value={activeBrands} />
-            <StatCard label="Portfolio" value="—" />
+            <StatCard label="Active" value={activeBrands} />
+            <StatCard label="Subscribers" value={totalSubscribers.toLocaleString()} />
+            <StatCard label="Revenue" value={totalRevenue ? `$${totalRevenue.toLocaleString()}` : '—'} />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
