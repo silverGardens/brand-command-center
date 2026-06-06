@@ -349,7 +349,7 @@ function NewsletterTab({ siteId }) {
 
 export default function EmailSequences() {
   const [activeTab, setActiveTab] = useState('sequences');
-  const { siteId } = useParams();
+  const { brandId } = useParams();
 
   const tabs = [
     { id: 'sequences', label: 'Sequences' },
@@ -376,8 +376,8 @@ export default function EmailSequences() {
         ))}
       </div>
 
-      {activeTab === 'sequences' && <SequencesTab siteId={siteId} />}
-      {activeTab === 'newsletter' && <NewsletterTab siteId={siteId} />}
+      {activeTab === 'sequences' && <SequencesTab siteId={brandId} />}
+      {activeTab === 'newsletter' && <NewsletterTab siteId={brandId} />}
     </div>
   );
 }

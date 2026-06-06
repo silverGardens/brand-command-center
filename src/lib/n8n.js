@@ -22,7 +22,7 @@ export async function getBrands() {
   return safeFetch(import.meta.env.VITE_WEBHOOK_GET_SITES);
 }
 
-// Backward-compat alias — SitesContext will be deleted in Task 13
+// Backward-compat alias — old pages will be deleted in Task 13
 export const getSites = getBrands;
 
 export async function createBrand(payload) {
@@ -324,3 +324,8 @@ export async function getAudienceMetrics(brandId) {
     body: JSON.stringify({ brand_id: brandId }),
   });
 }
+
+// Backward-compat aliases — old pages/components will be deleted in Task 13
+export const getSiteDetail = getBrandDetail;
+export const updateBrand = updateBrandProfile;
+export const createSite = createBrand;

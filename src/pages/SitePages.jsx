@@ -7,7 +7,7 @@ import Spinner from '../components/ui/Spinner';
 const PAGE_TYPES = ['all', 'homepage', 'landing', 'thank-you', 'offer', 'about', 'contact'];
 
 export default function SitePages() {
-  const { siteId } = useParams();
+  const { brandId } = useParams();
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [pages, setPages] = useState([]);
@@ -20,7 +20,7 @@ export default function SitePages() {
     async function load() {
       setLoading(true);
       const [pagesRes, tplRes] = await Promise.all([
-        getPages(siteId),
+        getPages(brandId),
         getTemplateRegistry(),
       ]);
       if (!pagesRes.error) setPages(pagesRes.data?.pages ?? []);
@@ -28,24 +28,24 @@ export default function SitePages() {
       setLoading(false);
     }
     load();
-  }, [siteId]);
+  }, [brandId]);
 
   async function handleUseTemplate(template) {
     const slug = template.type === 'homepage' ? 'index' : template.id;
-    const { error } = await savePage(siteId, {
+    const { error } = await savePage(brandId, {
       slug,
       template_id: template.id,
       field_values: {},
     });
     if (error) { showToast(error, 'error'); return; }
     showToast('Page created!', 'success');
-    const { data } = await getPages(siteId);
+    const { data } = await getPages(brandId);
     setPages(data?.pages ?? []);
   }
 
   async function handleExtract(pageSlug) {
     setExtracting(pageSlug);
-    const { error } = await extractTemplate(siteId, pageSlug);
+    const { error } = await extractTemplate(brandId, pageSlug);
     setExtracting(null);
     if (error) { showToast(error, 'error'); return; }
     showToast('Template extracted and saved to library!', 'success');
@@ -93,7 +93,7 @@ export default function SitePages() {
                   <td className="px-6 py-3 text-right">
                     <div className="flex items-center gap-3 justify-end">
                       <button
-                        onClick={() => navigate(`/site/${siteId}/pages/${page.slug}/edit`)}
+                        onClick={() => navigate(`/brand/${brandId}/sites/pages/${page.slug}/edit`)}
                         className="text-xs text-accent hover:text-accent-hover transition-colors"
                       >
                         Edit Content

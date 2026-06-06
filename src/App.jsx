@@ -1,23 +1,23 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { SitesProvider } from './context/SitesContext';
+import { BrandsProvider } from './context/BrandsContext';
 import { ToastProvider } from './hooks/useToast';
 import AdminGate from './components/ui/AdminGate';
 import AppLayout from './components/layout/AppLayout';
 import Dashboard from './pages/Dashboard';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
-import SiteOverview from './pages/SiteOverview';
-import BrandSettings from './pages/BrandSettings';
-import BlogManager from './pages/BlogManager';
+import BrandOverview from './pages/BrandOverview';
+import BrandProfile from './pages/BrandProfile';
+import BrandSites from './pages/BrandSites';
+import BrandSocial from './pages/BrandSocial';
+import BrandAudience from './pages/BrandAudience';
+import BrandProducts from './pages/BrandProducts';
+import BrandFinance from './pages/BrandFinance';
 import BlogPostEditor from './pages/BlogPostEditor';
-import Subscribers from './pages/Subscribers';
 import HumanReview from './pages/HumanReview';
-import TemplateBrandSettings from './pages/TemplateBrandSettings';
-import SocialPipeline from './pages/SocialPipeline';
-import EmailSequences from './pages/EmailSequences';
-import SitePages from './pages/SitePages';
 import PageEditor from './pages/PageEditor';
 import PageBuilder from './pages/PageBuilder';
+import TemplateBrandSettings from './pages/TemplateBrandSettings';
 
 const router = createBrowserRouter([
   {
@@ -27,31 +27,30 @@ const router = createBrowserRouter([
       { index: true, element: <Dashboard /> },
       { path: 'analytics', element: <Analytics /> },
       { path: 'settings', element: <Settings /> },
-      { path: 'site/:siteId', element: <SiteOverview /> },
-      { path: 'site/:siteId/brand', element: <BrandSettings /> },
-      { path: 'site/:siteId/blog', element: <BlogManager /> },
-      { path: 'site/:siteId/blog/new', element: <BlogPostEditor /> },
-      { path: 'site/:siteId/blog/:postId', element: <BlogPostEditor /> },
-      { path: 'site/:siteId/blog/:postId/review', element: <HumanReview /> },
-      { path: 'site/:siteId/subscribers', element: <Subscribers /> },
-      { path: 'site/:siteId/social', element: <SocialPipeline /> },
-      { path: 'site/:siteId/email', element: <EmailSequences /> },
-      { path: 'site/:siteId/pages', element: <SitePages /> },
-      { path: 'site/:siteId/pages/:pageSlug/edit', element: <PageEditor /> },
       { path: 'page-builder', element: <PageBuilder /> },
       { path: 'template/:templateId', element: <TemplateBrandSettings /> },
+      { path: 'brand/:brandId', element: <BrandOverview /> },
+      { path: 'brand/:brandId/profile', element: <BrandProfile /> },
+      { path: 'brand/:brandId/sites', element: <BrandSites /> },
+      { path: 'brand/:brandId/sites/blog/:postId', element: <BlogPostEditor /> },
+      { path: 'brand/:brandId/sites/blog/:postId/review', element: <HumanReview /> },
+      { path: 'brand/:brandId/sites/pages/:pageSlug/edit', element: <PageEditor /> },
+      { path: 'brand/:brandId/social', element: <BrandSocial /> },
+      { path: 'brand/:brandId/audience', element: <BrandAudience /> },
+      { path: 'brand/:brandId/products', element: <BrandProducts /> },
+      { path: 'brand/:brandId/finance', element: <BrandFinance /> },
     ],
   },
 ]);
 
 export default function App() {
   return (
-    <SitesProvider>
+    <BrandsProvider>
       <AdminGate>
         <ToastProvider>
           <RouterProvider router={router} />
         </ToastProvider>
       </AdminGate>
-    </SitesProvider>
+    </BrandsProvider>
   );
 }

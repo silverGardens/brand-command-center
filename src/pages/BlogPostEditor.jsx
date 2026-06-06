@@ -15,7 +15,7 @@ function wordCount(text) {
 }
 
 export default function BlogPostEditor() {
-  const { siteId, postId } = useParams();
+  const { brandId, postId } = useParams();
   const isNew = postId === 'new';
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -38,7 +38,7 @@ export default function BlogPostEditor() {
   useEffect(() => {
     if (isNew) return;
     async function load() {
-      const { data, error } = await getSiteDetail(siteId);
+      const { data, error } = await getSiteDetail(brandId);
       if (error) { showToast(error, 'error'); setLoading(false); return; }
       const found = (data?.posts ?? []).find(p => p.id === postId);
       if (found) {
@@ -64,7 +64,7 @@ export default function BlogPostEditor() {
       setLoading(false);
     }
     load();
-  }, [postId, siteId, isNew]);
+  }, [postId, brandId, isNew]);
 
   // Auto-slug from title for new posts
   useEffect(() => {
@@ -79,7 +79,7 @@ export default function BlogPostEditor() {
 
   async function handleAnalyzeSEO() {
     setSeo(s => ({ ...s, analyzing: true }));
-    const { data, error } = await analyzeSEO(siteId, postId, seo.focusKeyword, post.content);
+    const { data, error } = await analyzeSEO(brandId, postId, seo.focusKeyword, post.content);
     if (error) {
       showToast(error, 'error');
       setSeo(s => ({ ...s, analyzing: false }));
@@ -130,12 +130,12 @@ export default function BlogPostEditor() {
       seo_meta_title: seo.metaTitle,
       seo_meta_description: seo.metaDescription,
     };
-    const { data, error } = await savePost(siteId, payload);
+    const { data, error } = await savePost(brandId, payload);
     setSaving(false);
     if (error) { showToast(error, 'error'); return; }
     showToast('Post saved!', 'success');
     if (isNew && data?.post?.id) {
-      navigate(`/site/${siteId}/blog/${data.post.id}`, { replace: true });
+      navigate(`/brand/${brandId}/sites/blog/${data.post.id}`, { replace: true });
     }
   }
 
@@ -146,7 +146,7 @@ export default function BlogPostEditor() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <Link to={`/site/${siteId}/blog`} className="text-muted text-sm hover:text-accent transition-colors inline-flex items-center gap-1 mb-6">
+      <Link to={`/brand/${brandId}/sites`} className="text-muted text-sm hover:text-accent transition-colors inline-flex items-center gap-1 mb-6">
         ← Blog
       </Link>
 
@@ -290,7 +290,7 @@ export default function BlogPostEditor() {
             {saving ? 'Saving...' : 'Save Post'}
           </button>
           <SeoPanel
-            siteId={siteId}
+            siteId={brandId}
             postId={postId}
             content={post.content}
             seo={seo}
@@ -298,7 +298,7 @@ export default function BlogPostEditor() {
             onAnalyze={handleAnalyzeSEO}
           />
           {!isNew && (
-            <DistributePanel siteId={siteId} postId={postId} />
+            <DistributePanel siteId={brandId} postId={postId} />
           )}
         </div>
       </div>

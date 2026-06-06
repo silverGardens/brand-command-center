@@ -2,13 +2,13 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getPages, getTemplateRegistry, savePage } from '../lib/n8n';
 import { generatePreviewHTML } from '../lib/preview';
-import { useSites } from '../context/SitesContext';
+import { useBrands } from '../context/BrandsContext';
 import { useToast } from '../hooks/useToast';
 import Spinner from '../components/ui/Spinner';
 
 export default function PageEditor() {
-  const { siteId, pageSlug } = useParams();
-  const { sites } = useSites();
+  const { brandId, pageSlug } = useParams();
+  const { brands } = useBrands();
   const { showToast } = useToast();
   const iframeRef = useRef(null);
   const blobUrlRef = useRef(null);
@@ -20,12 +20,12 @@ export default function PageEditor() {
   const [saving, setSaving] = useState(false);
   const [expandedSections, setExpandedSections] = useState({});
 
-  const brand = sites.find(s => String(s.id) === String(siteId)) ?? {};
+  const brand = brands.find(s => String(s.id) === String(brandId)) ?? {};
 
   useEffect(() => {
     async function load() {
       const [pagesRes, tplRes] = await Promise.all([
-        getPages(siteId),
+        getPages(brandId),
         getTemplateRegistry(),
       ]);
       const foundPage = (pagesRes.data?.pages ?? []).find(p => p.slug === pageSlug);
@@ -44,7 +44,7 @@ export default function PageEditor() {
       setLoading(false);
     }
     load();
-  }, [siteId, pageSlug]);
+  }, [brandId, pageSlug]);
 
   const updatePreview = useCallback(() => {
     if (!iframeRef.current) return;
@@ -70,7 +70,7 @@ export default function PageEditor() {
 
   async function handleSave() {
     setSaving(true);
-    const { error } = await savePage(siteId, {
+    const { error } = await savePage(brandId, {
       slug: pageSlug,
       template_id: page?.template_id,
       field_values: fieldValues,
@@ -84,7 +84,7 @@ export default function PageEditor() {
   if (!page) return (
     <div className="flex flex-col items-center gap-4 py-32">
       <p className="text-muted text-sm">Page not found.</p>
-      <Link to={`/site/${siteId}/pages`} className="text-accent text-sm">← Back to Pages</Link>
+      <Link to={`/brand/${brandId}/sites`} className="text-accent text-sm">← Back to Pages</Link>
     </div>
   );
 
@@ -93,7 +93,7 @@ export default function PageEditor() {
       <div className="w-80 flex-shrink-0 bg-surface border-r border-border flex flex-col overflow-hidden">
         <div className="px-4 py-3 border-b border-border flex items-center justify-between">
           <div>
-            <Link to={`/site/${siteId}/pages`} className="text-muted text-xs hover:text-accent transition-colors">← Pages</Link>
+            <Link to={`/brand/${brandId}/sites`} className="text-muted text-xs hover:text-accent transition-colors">← Pages</Link>
             <p className="text-primary text-sm font-semibold mt-0.5">/{pageSlug}</p>
           </div>
           <button

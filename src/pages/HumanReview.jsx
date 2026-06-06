@@ -15,7 +15,7 @@ function StageBadge({ stage }) {
 }
 
 export default function HumanReview() {
-  const { siteId, postId } = useParams();
+  const { brandId, postId } = useParams();
   const { showToast } = useToast();
 
   const [post, setPost] = useState(null);
@@ -29,20 +29,20 @@ export default function HumanReview() {
 
   useEffect(() => {
     async function load() {
-      const { data, error } = await getSiteDetail(siteId);
+      const { data, error } = await getSiteDetail(brandId);
       if (error) { showToast(error, 'error'); setLoading(false); return; }
       const found = (data?.posts ?? []).find(p => String(p.id) === String(postId));
       setPost(found ?? null);
       setLoading(false);
     }
     load();
-  }, [siteId, postId]);
+  }, [brandId, postId]);
 
   async function handleGeneratePlan() {
     if (!instruction.trim()) return;
     setPlanLoading(true);
     setPlan(null);
-    const { data, error } = await planEdit(siteId, postId, instruction);
+    const { data, error } = await planEdit(brandId, postId, instruction);
     setPlanLoading(false);
     if (error) { showToast(error, 'error'); return; }
     const steps = data?.plan ?? data?.steps ?? data;
@@ -52,7 +52,7 @@ export default function HumanReview() {
   async function handleApplyPlan() {
     if (!plan?.length) return;
     setApplyLoading(true);
-    const { data, error } = await executeEdit(siteId, postId, plan, post?.content_markdown ?? '');
+    const { data, error } = await executeEdit(brandId, postId, plan, post?.content_markdown ?? '');
     setApplyLoading(false);
     if (error) { showToast(error, 'error'); return; }
     const updatedContent = data?.content_markdown ?? data?.post?.content_markdown;
@@ -66,7 +66,7 @@ export default function HumanReview() {
 
   async function handleApprove() {
     setApproveLoading(true);
-    const { error } = await approvePost(siteId, postId);
+    const { error } = await approvePost(brandId, postId);
     setApproveLoading(false);
     if (error) { showToast(error, 'error'); return; }
     setPost(prev => ({ ...prev, stage: 'ready' }));
@@ -80,7 +80,7 @@ export default function HumanReview() {
   if (!post) return (
     <div className="flex flex-col items-center gap-4 py-32">
       <p className="text-muted text-sm">Post not found.</p>
-      <Link to={`/site/${siteId}/blog`} className="text-accent text-sm hover:underline">← Back to Pipeline</Link>
+      <Link to={`/brand/${brandId}/sites`} className="text-accent text-sm hover:underline">← Back to Pipeline</Link>
     </div>
   );
 
@@ -91,7 +91,7 @@ export default function HumanReview() {
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <Link to={`/site/${siteId}/blog`} className="text-muted text-sm hover:text-accent transition-colors">
+          <Link to={`/brand/${brandId}/sites`} className="text-muted text-sm hover:text-accent transition-colors">
             ← Pipeline
           </Link>
           <div className="flex items-center gap-3 mt-2">
@@ -185,7 +185,7 @@ export default function HumanReview() {
 
           {/* Edit in editor */}
           <Link
-            to={`/site/${siteId}/blog/${postId}`}
+            to={`/brand/${brandId}/sites/blog/${postId}`}
             className="text-center text-muted text-sm hover:text-accent transition-colors py-2">
             Edit manually in post editor →
           </Link>

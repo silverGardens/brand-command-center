@@ -41,7 +41,7 @@ function StageBadge({ stage }) {
 }
 
 export default function BlogManager() {
-  const { siteId } = useParams();
+  const { brandId } = useParams();
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [posts, setPosts] = useState([]);
@@ -52,17 +52,17 @@ export default function BlogManager() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await getSiteDetail(siteId);
+    const { data, error } = await getSiteDetail(brandId);
     if (error) { showToast(error, 'error'); setLoading(false); return; }
     setPosts((data?.posts ?? []).map(normalizePost));
     setLoading(false);
-  }, [siteId]);
+  }, [brandId]);
 
   useEffect(() => { load(); }, [load]);
 
   async function handleGenerateIdeas() {
     setGeneratingIdeas(true);
-    const { error } = await generateIdeas(siteId);
+    const { error } = await generateIdeas(brandId);
     setGeneratingIdeas(false);
     if (error) { showToast(error, 'error'); return; }
     showToast('Ideas generated!', 'success');
@@ -71,12 +71,12 @@ export default function BlogManager() {
 
   async function handleAdvance(post, action) {
     if (!action.fn) {
-      navigate(`/site/${siteId}/blog/${post.id}/review`);
+      navigate(`/brand/${brandId}/sites/blog/${post.id}/review`);
       return;
     }
     setAdvancingPost(post.id);
     const fns = { research: researchPost, writeDraft, agentReview: agentReviewPost };
-    const { error } = await action.fn(siteId, post.id, fns);
+    const { error } = await action.fn(brandId, post.id, fns);
     setAdvancingPost(null);
     if (error) { showToast(error, 'error'); return; }
     showToast('Done!', 'success');
@@ -103,7 +103,7 @@ export default function BlogManager() {
             {generatingIdeas && <Spinner />}
             {generatingIdeas ? 'Generating…' : 'Generate Ideas'}
           </button>
-          <Link to={`/site/${siteId}/blog/new`}
+          <Link to={`/brand/${brandId}/sites/blog/new`}
             className="bg-accent hover:bg-accent-hover text-white text-sm font-medium px-4 py-2 rounded-md transition-colors">
             + New Post
           </Link>
@@ -137,7 +137,7 @@ export default function BlogManager() {
                 className="bg-elevated border border-border rounded-md px-5 py-2.5 text-sm text-primary transition-colors">
                 Generate Ideas
               </button>
-              <Link to={`/site/${siteId}/blog/new`}
+              <Link to={`/brand/${brandId}/sites/blog/new`}
                 className="bg-accent hover:bg-accent-hover text-white text-sm font-medium px-5 py-2.5 rounded-md transition-colors inline-block">
                 + New Post
               </Link>
@@ -165,7 +165,7 @@ export default function BlogManager() {
                   <tr key={post.id} className="border-b border-border last:border-0 hover:bg-elevated transition-colors">
                     <td className="px-6 py-3">
                       <Link
-                        to={isReviewStage ? `/site/${siteId}/blog/${post.id}/review` : `/site/${siteId}/blog/${post.id}`}
+                        to={isReviewStage ? `/brand/${brandId}/sites/blog/${post.id}/review` : `/brand/${brandId}/sites/blog/${post.id}`}
                         className="text-primary text-sm hover:text-accent transition-colors font-medium">
                         {post.title || 'Untitled'}
                       </Link>
