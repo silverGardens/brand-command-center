@@ -82,7 +82,7 @@ function EmailEditor({ email, title, onSave, onClose }) {
   );
 }
 
-function SequencesTab({ siteId }) {
+function SequencesTab({ brandId }) {
   const { showToast } = useToast();
   const [sequences, setSequences] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -93,18 +93,18 @@ function SequencesTab({ siteId }) {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await getEmailSequences(siteId);
+    const { data, error } = await getEmailSequences(brandId);
     if (error) showToast(error, 'error');
     else setSequences(data?.sequences ?? []);
     setLoading(false);
-  }, [siteId]);
+  }, [brandId]);
 
   useEffect(() => { load(); }, [load]);
 
   async function handleCreateSequence() {
     if (!newSequenceName.trim()) return;
     setCreatingSequence(true);
-    const { error } = await saveEmailSequence(siteId, { name: newSequenceName.trim(), emails: [] });
+    const { error } = await saveEmailSequence(brandId, { name: newSequenceName.trim(), emails: [] });
     setCreatingSequence(false);
     if (error) { showToast(error, 'error'); return; }
     setNewSequenceName('');
@@ -118,7 +118,7 @@ function SequencesTab({ siteId }) {
     const emails = emailData.id
       ? sequence.emails.map(e => e.id === emailData.id ? emailData : e)
       : [...sequence.emails, { ...emailData, sequence_id: sequenceId, position: sequence.emails.length + 1 }];
-    const { error } = await saveEmailSequence(siteId, { ...sequence, emails });
+    const { error } = await saveEmailSequence(brandId, { ...sequence, emails });
     if (error) { showToast(error, 'error'); return; }
     setEditingEmail(null);
     showToast('Saved!', 'success');
@@ -224,7 +224,7 @@ function SequencesTab({ siteId }) {
   );
 }
 
-function NewsletterTab({ siteId }) {
+function NewsletterTab({ brandId }) {
   const { showToast } = useToast();
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -233,17 +233,17 @@ function NewsletterTab({ siteId }) {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await getNewsletterIssues(siteId);
+    const { data, error } = await getNewsletterIssues(brandId);
     if (error) showToast(error, 'error');
     else setIssues(data?.issues ?? []);
     setLoading(false);
-  }, [siteId]);
+  }, [brandId]);
 
   useEffect(() => { load(); }, [load]);
 
   async function handleGenerate() {
     setGenerating(true);
-    const { data, error } = await generateNewsletterIssue(siteId);
+    const { data, error } = await generateNewsletterIssue(brandId);
     setGenerating(false);
     if (error) { showToast(error, 'error'); return; }
     showToast('Issue drafted!', 'success');
@@ -252,7 +252,7 @@ function NewsletterTab({ siteId }) {
   }
 
   async function handleSaveIssue(issueData) {
-    const { error } = await saveNewsletterIssue(siteId, issueData);
+    const { error } = await saveNewsletterIssue(brandId, issueData);
     if (error) { showToast(error, 'error'); return; }
     setEditingIssue(null);
     showToast('Issue saved!', 'success');
@@ -376,8 +376,8 @@ export default function EmailSequences() {
         ))}
       </div>
 
-      {activeTab === 'sequences' && <SequencesTab siteId={brandId} />}
-      {activeTab === 'newsletter' && <NewsletterTab siteId={brandId} />}
+      {activeTab === 'sequences' && <SequencesTab brandId={brandId} />}
+      {activeTab === 'newsletter' && <NewsletterTab brandId={brandId} />}
     </div>
   );
 }
