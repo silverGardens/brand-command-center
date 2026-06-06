@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, NavLink } from 'react-router-dom';
 import { useBrands } from '../../context/BrandsContext';
 import CreateSiteModal from '../sites/CreateSiteModal';
-import { TEMPLATES } from '../../lib/templates';
 
 function statusDot(status) {
   if (status === 'active') return 'bg-status-green';
@@ -51,51 +50,39 @@ export default function Sidebar() {
   return (
     <>
       <aside className="w-60 flex-shrink-0 bg-surface border-r border-border flex flex-col h-screen fixed left-0 top-0">
-        <div className="px-4 py-4 border-b border-border">
-          <div className="flex items-center gap-2">
-            <span className="text-primary text-lg">⌘</span>
-            <span className="text-primary font-semibold text-sm">Brand Command Center</span>
-          </div>
-        </div>
-
         <div className="py-3 border-b border-border">
-          <p className="text-muted text-xs font-semibold uppercase tracking-widest px-4 mb-1.5">Navigation</p>
           <NavLink to="/" end className={navLinkCls}>
             <span className="text-base leading-none">▣</span>
             <span>Dashboard</span>
-          </NavLink>
-          <NavLink to="/analytics" className={navLinkCls}>
-            <span className="text-base leading-none">↗</span>
-            <span>Analytics</span>
           </NavLink>
           <NavLink to="/settings" className={navLinkCls}>
             <span className="text-base leading-none">◈</span>
             <span>Settings</span>
           </NavLink>
-          <NavLink to="/page-builder" className={navLinkCls}>
+          <NavLink to="/websites" className={navLinkCls}>
             <span className="text-base leading-none">⬡</span>
-            <span>Page Builder</span>
+            <span>Websites</span>
           </NavLink>
         </div>
 
         <div className="py-3 border-b border-border">
-          <p className="text-muted text-xs font-semibold uppercase tracking-widest px-4 mb-1.5">Templates</p>
-          {TEMPLATES.map(template => (
-            <div key={template.id}>
-              <NavLink
-                to={`/template/${template.id}`}
-                className={({ isActive }) =>
-                  `flex items-center gap-2.5 px-4 py-2 text-sm rounded-md mx-2 transition-colors ${
-                    isActive ? 'bg-elevated text-primary' : 'text-muted hover:text-primary hover:bg-elevated'
-                  }`
-                }
-              >
-                <span className="text-base leading-none">◻</span>
-                <span className="truncate flex-1">{template.name}</span>
-                <span className="text-muted text-xs bg-elevated border border-border px-1.5 py-0.5 rounded text-[10px]">TPL</span>
-              </NavLink>
-            </div>
-          ))}
+          <p className="text-muted text-xs font-semibold uppercase tracking-widest px-4 mb-1.5">All Brands</p>
+          <NavLink to="/social" className={navLinkCls}>
+            <span className="text-base leading-none">◎</span>
+            <span>Social</span>
+          </NavLink>
+          <NavLink to="/audience" className={navLinkCls}>
+            <span className="text-base leading-none">◉</span>
+            <span>Audience</span>
+          </NavLink>
+          <NavLink to="/products" className={navLinkCls}>
+            <span className="text-base leading-none">◈</span>
+            <span>Products</span>
+          </NavLink>
+          <NavLink to="/finance" className={navLinkCls}>
+            <span className="text-base leading-none">◇</span>
+            <span>Finance</span>
+          </NavLink>
         </div>
 
         <div className="flex-1 overflow-y-auto py-3">
@@ -156,7 +143,7 @@ export default function Sidebar() {
         </div>
 
         <div className="p-4 border-t border-border">
-          <p className="text-muted text-xs text-center">Project Umbra v4.0</p>
+          <p className="text-muted text-xs text-center">Project Umbra v5.0</p>
         </div>
       </aside>
 
