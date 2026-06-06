@@ -1,3 +1,292 @@
+import { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
+import {
+  getSocialPosts, saveSocialPost, deleteSocialPost,
+  publishSocialPostNow, getConnectedAccounts, connectPlatformAccount, disconnectPlatformAccount,
+  getBrandDetail,
+} from '../lib/n8n';
+import { useToast } from '../hooks/useToast';
+import Spinner from '../components/ui/Spinner';
+
+const PLATFORMS = [
+  { id: 'twitter', label: 'Twitter / X', icon: '𝕏', limit: 280 },
+  { id: 'instagram', label: 'Instagram', icon: '◎', limit: 2200 },
+  { id: 'youtube', label: 'YouTube', icon: '▶', limit: 5000 },
+];
+
+const STATUS_STYLES = {
+  draft: 'text-muted bg-elevated border-border',
+  scheduled: 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20',
+  published: 'text-status-green bg-status-green/10 border-status-green/20',
+};
+
+const VIEWS = ['calendar', 'accounts'];
+
+function EditModal({ post, platform, onSave, onClose }) {
+  const [content, setContent] = useState(post?.content ?? '');
+  const [status, setStatus] = useState(post?.status ?? 'draft');
+  const [scheduledAt, setScheduledAt] = useState(post?.scheduled_at ? post.scheduled_at.split('T')[0] : '');
+  const [saving, setSaving] = useState(false);
+
+  async function handleSave() {
+    setSaving(true);
+    await onSave({ ...post, content, status, scheduled_at: status === 'scheduled' && scheduledAt ? new Date(scheduledAt).toISOString() : null });
+    setSaving(false);
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={onClose}>
+      <div className="bg-surface border border-border rounded-lg p-6 w-full max-w-lg mx-4" onClick={e => e.stopPropagation()}>
+        <h3 className="text-primary font-semibold mb-4">{post?.id ? 'Edit Post' : 'New Post'}</h3>
+        <textarea value={content} onChange={e => setContent(e.target.value)} rows={8}
+          className="w-full bg-elevated border border-border rounded-md px-3 py-2.5 text-primary text-sm focus:outline-none focus:border-accent resize-y mb-1"
+          placeholder={`Write your ${platform.label} post...`} />
+        <p className={`text-xs mb-4 text-right ${content.length > platform.limit ? 'text-status-red' : 'text-muted'}`}>
+          {content.length}/{platform.limit}
+        </p>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex-1">
+            <label className="text-xs text-muted uppercase tracking-wide block mb-1">Status</label>
+            <select value={status} onChange={e => setStatus(e.target.value)}
+              className="w-full bg-elevated border border-border rounded-md px-3 py-2 text-primary text-sm focus:outline-none focus:border-accent">
+              <option value="draft">Draft</option>
+              <option value="scheduled">Scheduled</option>
+              <option value="published">Published</option>
+            </select>
+          </div>
+          {status === 'scheduled' && (
+            <div className="flex-1">
+              <label className="text-xs text-muted uppercase tracking-wide block mb-1">Schedule Date</label>
+              <input type="date" value={scheduledAt} onChange={e => setScheduledAt(e.target.value)}
+                className="w-full bg-elevated border border-border rounded-md px-3 py-2 text-primary text-sm focus:outline-none focus:border-accent" />
+            </div>
+          )}
+        </div>
+        <div className="flex gap-3 justify-end">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-muted hover:text-primary transition-colors">Cancel</button>
+          <button onClick={handleSave} disabled={saving || !content.trim()}
+            className="bg-accent hover:bg-accent-hover disabled:opacity-60 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-colors">
+            {saving && <Spinner />}{saving ? 'Saving...' : 'Save'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function BrandSocial() {
-  return <div className="max-w-4xl mx-auto"><h1 className="text-primary text-2xl font-semibold">Social</h1><p className="text-muted text-sm mt-2">Coming soon.</p></div>;
+  const { brandId } = useParams();
+  const { showToast } = useToast();
+  const [view, setView] = useState('calendar');
+  const [activePlatform, setActivePlatform] = useState('twitter');
+  const [posts, setPosts] = useState([]);
+  const [accounts, setAccounts] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [loadingAccounts, setLoadingAccounts] = useState(false);
+  const [editModal, setEditModal] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [deleting, setDeleting] = useState(null);
+  const [publishing, setPublishing] = useState(null);
+  const [connecting, setConnecting] = useState({});
+  const [disconnecting, setDisconnecting] = useState({});
+
+  const platform = PLATFORMS.find(p => p.id === activePlatform) ?? PLATFORMS[0];
+
+  const loadPosts = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await getSocialPosts(brandId, activePlatform);
+    if (error) showToast(error, 'error');
+    else setPosts(data?.posts ?? []);
+    setLoading(false);
+  }, [brandId, activePlatform]);
+
+  useEffect(() => { loadPosts(); }, [loadPosts]);
+
+  useEffect(() => {
+    if (view !== 'accounts') return;
+    setLoadingAccounts(true);
+    getConnectedAccounts(brandId).then(({ data }) => {
+      if (data) setAccounts(data);
+      setLoadingAccounts(false);
+    });
+  }, [view, brandId]);
+
+  async function handleSavePost(postData) {
+    const { error } = await saveSocialPost(brandId, activePlatform, postData);
+    if (error) { showToast(error, 'error'); return; }
+    setEditModal(null);
+    showToast('Post saved!', 'success');
+    loadPosts();
+  }
+
+  async function handleDelete(id) {
+    setDeleting(id);
+    const { error } = await deleteSocialPost(brandId, id);
+    setDeleting(null);
+    if (error) showToast(error, 'error');
+    else { showToast('Deleted.', 'success'); loadPosts(); }
+  }
+
+  async function handlePublishNow(id) {
+    setPublishing(id);
+    const { error } = await publishSocialPostNow(brandId, id);
+    setPublishing(null);
+    if (error) showToast(error, 'error');
+    else { showToast('Published!', 'success'); loadPosts(); }
+  }
+
+  async function handleConnect(p) {
+    setConnecting(c => ({ ...c, [p]: true }));
+    const { data, error } = await connectPlatformAccount(brandId, p);
+    setConnecting(c => ({ ...c, [p]: false }));
+    if (error) { showToast(error, 'error'); return; }
+    if (data?.auth_url) { window.open(data.auth_url, '_blank', 'width=600,height=700'); showToast('Complete authorization in the popup, then refresh.', 'success'); }
+  }
+
+  async function handleDisconnect(p) {
+    setDisconnecting(d => ({ ...d, [p]: true }));
+    const { error } = await disconnectPlatformAccount(brandId, p);
+    setDisconnecting(d => ({ ...d, [p]: false }));
+    if (error) { showToast(error, 'error'); return; }
+    setAccounts(a => ({ ...a, [p]: null }));
+    showToast(`${p} disconnected.`, 'success');
+  }
+
+  return (
+    <div className="max-w-5xl mx-auto">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-primary text-2xl font-semibold">Social</h1>
+        <div className="flex items-center gap-2">
+          {VIEWS.map(v => (
+            <button key={v} onClick={() => setView(v)}
+              className={`px-4 py-2 text-sm rounded-md border transition-colors ${view === v ? 'bg-accent text-white border-accent' : 'text-muted border-border hover:text-primary'}`}>
+              {v === 'calendar' ? 'Content Calendar' : 'Connected Accounts'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {view === 'accounts' && (
+        <div className="bg-surface border border-border rounded-md p-5">
+          <h3 className="text-primary text-sm font-semibold mb-1">Connected Accounts</h3>
+          <p className="text-muted text-xs mb-4">Connect platform accounts for this brand to enable publishing.</p>
+          {loadingAccounts ? <div className="flex justify-center py-4"><Spinner className="text-accent" /></div> : (
+            <div className="flex flex-col gap-3">
+              {PLATFORMS.map(p => {
+                const connected = accounts[p.id];
+                return (
+                  <div key={p.id} className="flex items-center justify-between py-3 border-b border-border last:border-0">
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-base">{p.icon}</span>
+                      <div>
+                        <p className="text-primary text-sm font-medium">{p.label}</p>
+                        <p className="text-muted text-xs">{connected ? `Connected as @${connected.username ?? connected.name ?? 'account'}` : 'Not connected'}</p>
+                      </div>
+                    </div>
+                    {connected ? (
+                      <button onClick={() => handleDisconnect(p.id)} disabled={!!disconnecting[p.id]}
+                        className="flex items-center gap-1.5 text-xs text-status-red/70 hover:text-status-red border border-status-red/20 hover:border-status-red/40 px-3 py-1.5 rounded-md transition-colors disabled:opacity-60">
+                        {disconnecting[p.id] && <Spinner />}Disconnect
+                      </button>
+                    ) : (
+                      <button onClick={() => handleConnect(p.id)} disabled={!!connecting[p.id]}
+                        className="flex items-center gap-1.5 text-xs text-accent border border-accent/40 hover:border-accent px-3 py-1.5 rounded-md transition-colors disabled:opacity-60">
+                        {connecting[p.id] && <Spinner />}Connect
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {view === 'calendar' && (
+        <>
+          <div className="flex items-center gap-1 mb-6 border-b border-border">
+            {PLATFORMS.map(p => (
+              <button key={p.id} onClick={() => setActivePlatform(p.id)}
+                className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${activePlatform === p.id ? 'text-primary border-accent' : 'text-muted border-transparent hover:text-primary'}`}>
+                <span className="mr-1.5">{p.icon}</span>{p.label}
+              </button>
+            ))}
+            <button onClick={() => setEditModal({})}
+              className="ml-auto bg-accent hover:bg-accent-hover text-white text-sm font-medium px-4 py-2 rounded-md transition-colors mb-1">
+              + New Post
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2 mb-4">
+            {['all', 'draft', 'scheduled', 'published'].map(s => (
+              <button key={s} onClick={() => setStatusFilter(s)}
+                className={`px-3 py-1 text-xs rounded-full border transition-colors ${statusFilter === s ? 'bg-accent text-white border-accent' : 'text-muted border-border hover:text-primary'}`}>
+                {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          {loading ? (
+            <div className="flex justify-center py-20"><Spinner size="lg" className="text-accent" /></div>
+          ) : posts.length === 0 ? (
+            <div className="text-center py-24">
+              <p className="text-muted text-sm mb-4">No {platform.label} posts yet.</p>
+              <button onClick={() => setEditModal({})} className="bg-accent hover:bg-accent-hover text-white text-sm font-medium px-5 py-2.5 rounded-md transition-colors">
+                + New Post
+              </button>
+            </div>
+          ) : (
+            <div className="bg-surface border border-border rounded-md overflow-hidden">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left px-6 py-3 text-muted text-xs uppercase tracking-wide font-medium">Content</th>
+                    <th className="text-left px-6 py-3 text-muted text-xs uppercase tracking-wide font-medium">Status</th>
+                    <th className="text-left px-6 py-3 text-muted text-xs uppercase tracking-wide font-medium">Scheduled</th>
+                    <th className="text-right px-6 py-3 text-muted text-xs uppercase tracking-wide font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {posts.filter(p => statusFilter === 'all' || p.status === statusFilter).map(post => (
+                    <tr key={post.id} className="border-b border-border last:border-0 hover:bg-elevated transition-colors">
+                      <td className="px-6 py-3 max-w-sm">
+                        <p className="text-primary text-sm truncate">{post.content}</p>
+                      </td>
+                      <td className="px-6 py-3">
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded border ${STATUS_STYLES[post.status] ?? STATUS_STYLES.draft}`}>
+                          {post.status ?? 'draft'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-3 text-muted text-sm">
+                        {post.scheduled_at ? new Date(post.scheduled_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
+                      </td>
+                      <td className="px-6 py-3 text-right">
+                        <div className="flex items-center gap-3 justify-end">
+                          <button onClick={() => setEditModal(post)} className="text-xs text-accent hover:text-accent-hover transition-colors">Edit</button>
+                          {post.status !== 'published' && (
+                            <button onClick={() => handlePublishNow(post.id)} disabled={publishing === post.id}
+                              className="text-xs text-status-green/70 hover:text-status-green transition-colors disabled:opacity-40 flex items-center gap-1">
+                              {publishing === post.id && <Spinner />}Publish Now
+                            </button>
+                          )}
+                          <button onClick={() => handleDelete(post.id)} disabled={deleting === post.id}
+                            className="text-xs text-status-red/70 hover:text-status-red transition-colors disabled:opacity-40 flex items-center gap-1">
+                            {deleting === post.id && <Spinner />}Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      )}
+
+      {editModal !== null && (
+        <EditModal post={editModal} platform={platform} onSave={handleSavePost} onClose={() => setEditModal(null)} />
+      )}
+    </div>
+  );
 }
