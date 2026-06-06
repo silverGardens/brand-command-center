@@ -1,131 +1,172 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { createBrand } from '../../lib/n8n';
+import { useState } from 'react';
+import { createBrand, researchBrand } from '../../lib/n8n';
 import { useBrands } from '../../context/BrandsContext';
 import { useToast } from '../../hooks/useToast';
-import ColorInput from '../ui/ColorInput';
 import Spinner from '../ui/Spinner';
 
-function slugify(str) {
-  return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-}
+const STEPS = ['Basics', 'Research', 'Create'];
 
 export default function CreateSiteModal({ isOpen, onClose }) {
-  const navigate = useNavigate();
-  const { refreshBrands } = useBrands();
+  const { refresh } = useBrands();
   const { showToast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [existingBrand, setExistingBrand] = useState(null);
-  const [form, setForm] = useState({
-    name: '', slug: '', niche: '', tagline: '',
-    primaryColor: '#2563EB', secondaryColor: '#1C2128',
-  });
+  const [step, setStep] = useState(0);
+  const [form, setForm] = useState({ name: '', niche: '', keywords: '', domain: '' });
+  const [research, setResearch] = useState(null);
+  const [researching, setResearching] = useState(false);
+  const [creating, setCreating] = useState(false);
 
-  useEffect(() => {
-    if (form.name) {
-      setForm(f => ({ ...f, slug: slugify(f.name) }));
-    }
-  }, [form.name]);
+  function reset() {
+    setStep(0);
+    setForm({ name: '', niche: '', keywords: '', domain: '' });
+    setResearch(null);
+  }
 
-  useEffect(() => {
-    if (!isOpen) {
-      setExistingBrand(null);
-      setForm({ name: '', slug: '', niche: '', tagline: '', primaryColor: '#2563EB', secondaryColor: '#1C2128' });
-    }
-  }, [isOpen]);
+  function handleClose() { reset(); onClose(); }
+
+  async function handleResearch() {
+    setResearching(true);
+    const { data, error } = await researchBrand(form.niche, form.keywords);
+    setResearching(false);
+    if (error) showToast('Research failed — you can proceed to Create', 'error');
+    else setResearch(data);
+    setStep(2);
+  }
+
+  async function handleCreate() {
+    if (!form.name.trim()) { showToast('Brand name is required', 'error'); return; }
+    setCreating(true);
+    const { error } = await createBrand({
+      name: form.name.trim(),
+      domain: form.domain.trim() || null,
+      niche: form.niche.trim() || null,
+      research_notes: research ? JSON.stringify(research) : null,
+    });
+    setCreating(false);
+    if (error) { showToast(error, 'error'); return; }
+    showToast('Brand created!', 'success');
+    refresh();
+    handleClose();
+  }
 
   if (!isOpen) return null;
 
-  function set(key, val) {
-    setForm(f => ({ ...f, [key]: val }));
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setLoading(true);
-    const { data, error } = await createBrand(form);
-    setLoading(false);
-    if (error) {
-      showToast(error, 'error');
-      return;
-    }
-    if (data?.exists) {
-      setExistingBrand(data.site ?? data.brand);
-      return;
-    }
-    await refreshBrands();
-    showToast('Brand created! Check the sidebar.', 'success');
-    onClose();
-    const newId = data?.site?.id ?? data?.brand?.id;
-    if (newId) navigate(`/brand/${newId}`);
-  }
-
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="bg-elevated border border-border rounded-md max-w-lg w-full p-8 relative">
-        <button onClick={onClose} className="absolute top-4 right-4 text-muted hover:text-primary text-xl leading-none">&times;</button>
-        <h2 className="text-primary text-xl font-semibold mb-6">Create New Brand</h2>
-
-        {existingBrand ? (
-          <div className="flex flex-col gap-5">
-            <div className="bg-surface border border-border rounded-md p-4">
-              <p className="text-primary text-sm font-medium mb-1">A brand with this slug already exists</p>
-              <p className="text-muted text-sm">
-                <span className="text-primary font-medium">{existingBrand.name}</span>
-                {existingBrand.domain && <span className="ml-2 text-muted">— {existingBrand.domain}</span>}
-              </p>
-            </div>
-            <p className="text-muted text-sm">Do you want to go to this brand and modify it instead?</p>
-            <div className="flex gap-3">
-              <button onClick={onClose}
-                className="flex-1 bg-elevated hover:bg-border border border-border rounded-md py-2.5 text-sm text-primary transition-colors">
-                Cancel
-              </button>
-              <button onClick={() => { onClose(); navigate(`/brand/${existingBrand.id}`); }}
-                className="flex-1 bg-accent hover:bg-accent-hover text-white rounded-md py-2.5 font-medium text-sm transition-colors">
-                Go to Brand →
-              </button>
-            </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+      <div className="bg-surface border border-border rounded-lg w-full max-w-lg mx-4 shadow-xl">
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+          <div>
+            <h2 className="text-primary font-semibold">New Brand</h2>
+            <p className="text-muted text-xs mt-0.5">Step {step + 1} of {STEPS.length} — {STEPS[step]}</p>
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div>
-              <label className="text-xs font-medium text-muted uppercase tracking-wide block mb-1.5">Brand Name *</label>
-              <input required value={form.name} onChange={e => set('name', e.target.value)}
-                className="w-full bg-surface border border-border rounded-md px-3 py-2.5 text-primary text-sm placeholder-muted focus:outline-none focus:border-accent"
-                placeholder="My Awesome Brand" />
+          <button onClick={handleClose} className="text-muted hover:text-primary text-xl leading-none">×</button>
+        </div>
+
+        {/* Step indicators */}
+        <div className="flex px-6 pt-4 gap-2">
+          {STEPS.map((s, i) => (
+            <div key={s} className="flex items-center gap-2 flex-1">
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 ${
+                i < step ? 'bg-accent text-white' : i === step ? 'bg-accent/20 text-accent border border-accent' : 'bg-elevated text-muted'
+              }`}>
+                {i < step ? '✓' : i + 1}
+              </div>
+              <span className={`text-xs ${i === step ? 'text-primary' : 'text-muted'}`}>{s}</span>
+              {i < STEPS.length - 1 && <div className="flex-1 h-px bg-border ml-1" />}
             </div>
-            <div>
-              <label className="text-xs font-medium text-muted uppercase tracking-wide block mb-1.5">Slug *</label>
-              <input required value={form.slug} onChange={e => set('slug', slugify(e.target.value))}
-                className="w-full bg-surface border border-border rounded-md px-3 py-2.5 text-primary text-sm placeholder-muted focus:outline-none focus:border-accent font-mono"
-                placeholder="my-awesome-brand" />
-              {form.slug && <p className="text-muted text-xs mt-1">brand-url: {form.slug}.netlify.app</p>}
+          ))}
+        </div>
+
+        {/* Step content */}
+        <div className="px-6 py-5">
+          {step === 0 && (
+            <div className="flex flex-col gap-4">
+              <Field label="Brand Name *" value={form.name} onChange={v => setForm(f => ({ ...f, name: v }))} placeholder="e.g. Dink Daily" />
+              <Field label="Niche / Topic" value={form.niche} onChange={v => setForm(f => ({ ...f, niche: v }))} placeholder="e.g. Pickleball for beginners" />
+              <Field label="Target Keywords" value={form.keywords} onChange={v => setForm(f => ({ ...f, keywords: v }))} placeholder="e.g. pickleball tips, beginner paddle" />
+              <Field label="Domain (optional)" value={form.domain} onChange={v => setForm(f => ({ ...f, domain: v }))} placeholder="e.g. dinkdaily.com" />
             </div>
-            <div>
-              <label className="text-xs font-medium text-muted uppercase tracking-wide block mb-1.5">Niche / Topic</label>
-              <input value={form.niche} onChange={e => set('niche', e.target.value)}
-                className="w-full bg-surface border border-border rounded-md px-3 py-2.5 text-primary text-sm placeholder-muted focus:outline-none focus:border-accent"
-                placeholder="e.g. AI Productivity, Pickleball" />
+          )}
+
+          {step === 1 && (
+            <div className="flex flex-col gap-4">
+              <p className="text-muted text-sm">Use AI to research your niche — audience insights, content angles, and monetization ideas. You can skip this step.</p>
+              <div className="bg-elevated border border-border rounded-md p-4">
+                <p className="text-primary text-sm font-medium mb-1">{form.niche || 'Your niche'}</p>
+                <p className="text-muted text-xs">Keywords: {form.keywords || '(none provided)'}</p>
+              </div>
+              {researching && (
+                <div className="flex items-center gap-2 text-muted text-sm">
+                  <Spinner /> Researching niche…
+                </div>
+              )}
             </div>
-            <div>
-              <label className="text-xs font-medium text-muted uppercase tracking-wide block mb-1.5">Tagline</label>
-              <input value={form.tagline} onChange={e => set('tagline', e.target.value)}
-                className="w-full bg-surface border border-border rounded-md px-3 py-2.5 text-primary text-sm placeholder-muted focus:outline-none focus:border-accent"
-                placeholder="One-line description" />
+          )}
+
+          {step === 2 && (
+            <div className="flex flex-col gap-4">
+              <div className="bg-elevated border border-border rounded-md p-4">
+                <p className="text-primary text-sm font-semibold mb-2">{form.name || 'Unnamed Brand'}</p>
+                {form.niche && <p className="text-muted text-xs mb-1">Niche: {form.niche}</p>}
+                {form.domain && <p className="text-muted text-xs mb-1">Domain: {form.domain}</p>}
+                {form.keywords && <p className="text-muted text-xs">Keywords: {form.keywords}</p>}
+              </div>
+              {research ? (
+                <div className="bg-surface border border-border rounded-md p-4 max-h-48 overflow-y-auto">
+                  <p className="text-muted text-xs font-semibold uppercase tracking-wide mb-2">Research Notes</p>
+                  <p className="text-primary text-sm whitespace-pre-wrap">{typeof research === 'string' ? research : JSON.stringify(research, null, 2)}</p>
+                </div>
+              ) : (
+                <p className="text-muted text-xs">No research data — brand will be created with basic info.</p>
+              )}
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <ColorInput label="Primary Color" value={form.primaryColor} onChange={v => set('primaryColor', v)} />
-              <ColorInput label="Secondary Color" value={form.secondaryColor} onChange={v => set('secondaryColor', v)} />
-            </div>
-            <button type="submit" disabled={loading}
-              className="mt-2 bg-accent hover:bg-accent-hover disabled:opacity-60 text-white rounded-md py-2.5 font-medium text-sm transition-colors flex items-center justify-center gap-2">
-              {loading && <Spinner />}
-              {loading ? 'Creating...' : 'Create Brand'}
-            </button>
-          </form>
-        )}
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-border flex items-center justify-between">
+          <button onClick={step === 0 ? handleClose : () => setStep(s => s - 1)}
+            className="text-muted text-sm hover:text-primary transition-colors">
+            {step === 0 ? 'Cancel' : '← Back'}
+          </button>
+          <div className="flex gap-2">
+            {step === 1 && (
+              <button onClick={() => setStep(2)}
+                className="text-muted text-sm border border-border rounded-md px-3 py-1.5 hover:text-primary transition-colors">
+                Skip Research
+              </button>
+            )}
+            {step === 0 && (
+              <button onClick={() => setStep(1)} disabled={!form.name.trim()}
+                className="bg-accent hover:bg-accent-hover text-white text-sm font-medium px-4 py-1.5 rounded-md transition-colors disabled:opacity-50">
+                Next →
+              </button>
+            )}
+            {step === 1 && (
+              <button onClick={handleResearch} disabled={researching}
+                className="bg-accent hover:bg-accent-hover text-white text-sm font-medium px-4 py-1.5 rounded-md transition-colors disabled:opacity-50 flex items-center gap-1.5">
+                {researching && <Spinner />} Research with AI →
+              </button>
+            )}
+            {step === 2 && (
+              <button onClick={handleCreate} disabled={creating}
+                className="bg-accent hover:bg-accent-hover text-white text-sm font-medium px-4 py-1.5 rounded-md transition-colors disabled:opacity-50 flex items-center gap-1.5">
+                {creating && <Spinner />} Create Brand
+              </button>
+            )}
+          </div>
+        </div>
       </div>
+    </div>
+  );
+}
+
+function Field({ label, value, onChange, placeholder }) {
+  return (
+    <div>
+      <label className="block text-muted text-xs font-medium mb-1.5">{label}</label>
+      <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
+        className="w-full bg-elevated border border-border rounded-md px-3 py-2 text-primary text-sm placeholder:text-muted focus:outline-none focus:border-accent" />
     </div>
   );
 }

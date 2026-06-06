@@ -27,7 +27,7 @@ export function BrandsProvider({ children }) {
   }, [refreshBrands]);
 
   return (
-    <BrandsContext.Provider value={{ brands, activeBrandId, setActiveBrandId, refreshBrands, isLoading, error }}>
+    <BrandsContext.Provider value={{ brands, activeBrandId, setActiveBrandId, refreshBrands, refresh: refreshBrands, isLoading, error }}>
       {children}
     </BrandsContext.Provider>
   );

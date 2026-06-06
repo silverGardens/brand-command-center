@@ -97,6 +97,13 @@ export async function generateIdeas(brandId) {
   });
 }
 
+export async function researchBrand(niche, targetKeywords) {
+  return safeFetch(import.meta.env.VITE_WEBHOOK_GENERATE_IDEAS, {
+    method: 'POST',
+    body: JSON.stringify({ mode: 'brand_research', niche, target_keywords: targetKeywords }),
+  });
+}
+
 export async function researchPost(brandId, postId) {
   return safeFetch(import.meta.env.VITE_WEBHOOK_RESEARCH_POST, {
     method: 'POST',
