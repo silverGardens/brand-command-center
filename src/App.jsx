@@ -18,20 +18,10 @@ import PageEditor from './pages/PageEditor';
 import PageBuilder from './pages/PageBuilder';
 import TemplateBrandSettings from './pages/TemplateBrandSettings';
 import Websites from './pages/Websites';
-
-function ComingSoon({ title }) {
-  return (
-    <div className="max-w-5xl mx-auto">
-      <h1 className="text-primary text-2xl font-semibold">{title}</h1>
-      <p className="text-muted text-sm mt-2">Coming soon.</p>
-    </div>
-  );
-}
-
-function AllSocial() { return <ComingSoon title="Social" />; }
-function AllAudience() { return <ComingSoon title="Audience" />; }
-function AllProducts() { return <ComingSoon title="Products" />; }
-function AllFinance() { return <ComingSoon title="Finance" />; }
+import AllSocial from './pages/AllSocial';
+import AllAudience from './pages/AllAudience';
+import AllProducts from './pages/AllProducts';
+import AllFinance from './pages/AllFinance';
 
 const router = createBrowserRouter([
   {

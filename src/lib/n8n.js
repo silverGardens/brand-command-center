@@ -297,7 +297,7 @@ export async function saveProduct(brandId, productData) {
   });
 }
 
-export async function getPurchases(brandId, period = 'all') {
+export async function getPurchases(brandId, period = '30d') {
   return safeFetch(import.meta.env.VITE_WEBHOOK_GET_PURCHASES, {
     method: 'POST',
     body: JSON.stringify({ brand_id: brandId, period }),
