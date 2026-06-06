@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getSiteDetail, generateIdeas, researchPost, writeDraft, agentReviewPost } from '../lib/n8n';
+import { getBrandDetail, generateIdeas, researchPost, writeDraft, agentReviewPost } from '../lib/n8n';
 import { useToast } from '../hooks/useToast';
 import Spinner from '../components/ui/Spinner';
 import { normalizePost } from '../lib/normalize';
@@ -22,9 +22,9 @@ function inferStage(post) {
 }
 
 const NEXT_ACTION = {
-  idea:         { label: 'Research',     fn: (siteId, postId, fns) => fns.research(siteId, postId),     loading: 'Researching…' },
-  research:     { label: 'Write Draft',  fn: (siteId, postId, fns) => fns.writeDraft(siteId, postId),   loading: 'Writing…' },
-  draft:        { label: 'Agent Review', fn: (siteId, postId, fns) => fns.agentReview(siteId, postId),  loading: 'Reviewing…' },
+  idea:         { label: 'Research',     fn: (brandId, postId, fns) => fns.research(brandId, postId),     loading: 'Researching…' },
+  research:     { label: 'Write Draft',  fn: (brandId, postId, fns) => fns.writeDraft(brandId, postId),   loading: 'Writing…' },
+  draft:        { label: 'Agent Review', fn: (brandId, postId, fns) => fns.agentReview(brandId, postId),  loading: 'Reviewing…' },
   agent_review: { label: 'Review',       fn: null },
   human_review: { label: 'Review',       fn: null },
   ready:        { label: 'View',         fn: null },
@@ -52,7 +52,7 @@ export default function BlogManager() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await getSiteDetail(brandId);
+    const { data, error } = await getBrandDetail(brandId);
     if (error) { showToast(error, 'error'); setLoading(false); return; }
     setPosts((data?.posts ?? []).map(normalizePost));
     setLoading(false);
