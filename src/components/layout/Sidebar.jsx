@@ -76,7 +76,7 @@ export default function Sidebar() {
             <span>Audience</span>
           </NavLink>
           <NavLink to="/products" className={navLinkCls}>
-            <span className="text-base leading-none">◈</span>
+            <span className="text-base leading-none">◫</span>
             <span>Products</span>
           </NavLink>
           <NavLink to="/finance" className={navLinkCls}>
