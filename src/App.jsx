@@ -17,6 +17,7 @@ import HumanReview from './pages/HumanReview';
 import PageEditor from './pages/PageEditor';
 import PageBuilder from './pages/PageBuilder';
 import TemplateBrandSettings from './pages/TemplateBrandSettings';
+import Websites from './pages/Websites';
 
 function ComingSoon({ title }) {
   return (
@@ -27,7 +28,6 @@ function ComingSoon({ title }) {
   );
 }
 
-function Websites() { return <ComingSoon title="Websites" />; }
 function AllSocial() { return <ComingSoon title="Social" />; }
 function AllAudience() { return <ComingSoon title="Audience" />; }
 function AllProducts() { return <ComingSoon title="Products" />; }

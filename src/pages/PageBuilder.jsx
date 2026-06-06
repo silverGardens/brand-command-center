@@ -3,7 +3,7 @@ import { buildPageFromDescription, buildPageFromScreenshot } from '../lib/n8n';
 import { useToast } from '../hooks/useToast';
 import Spinner from '../components/ui/Spinner';
 
-export default function PageBuilder() {
+export default function PageBuilder({ embedded = false }) {
   const { showToast } = useToast();
   const [mode, setMode] = useState('text');
   const [description, setDescription] = useState('');
@@ -47,8 +47,8 @@ export default function PageBuilder() {
     reader.readAsDataURL(file);
   }
 
-  return (
-    <div className="max-w-3xl mx-auto">
+  const content = (
+    <>
       <div className="mb-8">
         <h1 className="text-primary text-2xl font-semibold mb-1">Page Builder</h1>
         <p className="text-muted text-sm">Describe a page layout in text or upload a screenshot — AI builds an Astro template and adds it to your library.</p>
@@ -125,6 +125,8 @@ export default function PageBuilder() {
           <p className="text-muted text-xs mt-3">The template is now available in the Template Library on any site Pages section.</p>
         </div>
       )}
-    </div>
+    </>
   );
+
+  return embedded ? content : <div className="max-w-3xl mx-auto">{content}</div>;
 }
