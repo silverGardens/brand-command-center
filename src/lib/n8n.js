@@ -22,6 +22,9 @@ export async function getBrands() {
   return safeFetch(import.meta.env.VITE_WEBHOOK_GET_SITES);
 }
 
+// Backward-compat alias — SitesContext will be deleted in Task 13
+export const getSites = getBrands;
+
 export async function createBrand(payload) {
   return safeFetch(import.meta.env.VITE_WEBHOOK_CREATE_SITE, {
     method: 'POST',

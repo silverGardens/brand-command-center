@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeSite, normalizePost } from './normalize';
-import { normalizeBrand, normalizeSubscriber, normalizeProduct } from './normalize.js';
+import { normalizeSite, normalizeBrand, normalizePost, normalizeSubscriber, normalizeProduct } from './normalize.js';
 
 describe('normalizeSite', () => {
   it('passes through a standard-shaped site unchanged', () => {
@@ -109,11 +108,36 @@ describe('normalizeSubscriber', () => {
     expect(result.type).toBe('customer');
     expect(result.total_spend).toBe(99.99);
   });
+
+  it('uses subscriber_id as id alias', () => {
+    const raw = { subscriber_id: 'sub_123', email: 'a@b.com' };
+    expect(normalizeSubscriber(raw).id).toBe('sub_123');
+  });
+
+  it('maps full_name to name', () => {
+    const raw = { id: 1, email: 'a@b.com', full_name: 'Jane Doe' };
+    expect(normalizeSubscriber(raw).name).toBe('Jane Doe');
+  });
+
+  it('defaults total_spend to 0 for non-numeric', () => {
+    const raw = { id: 1, email: 'a@b.com', total_spend: 'abc' };
+    expect(normalizeSubscriber(raw).total_spend).toBe(0);
+  });
 });
 
 describe('normalizeProduct', () => {
   it('normalizes price to number', () => {
     const raw = { id: 1, name: 'Course', price: '49.00' };
     expect(normalizeProduct(raw).price).toBe(49);
+  });
+
+  it('defaults type to digital when missing', () => {
+    const raw = { id: 1, name: 'Course' };
+    expect(normalizeProduct(raw).type).toBe('digital');
+  });
+
+  it('passes through numeric price as-is', () => {
+    const raw = { id: 1, name: 'Course', price: 99 };
+    expect(normalizeProduct(raw).price).toBe(99);
   });
 });
