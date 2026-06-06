@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { normalizeSite, normalizePost } from './normalize';
+import { normalizeBrand, normalizeSubscriber, normalizeProduct } from './normalize.js';
 
 describe('normalizeSite', () => {
   it('passes through a standard-shaped site unchanged', () => {
@@ -77,5 +78,42 @@ describe('normalizePost', () => {
 
   it('passes through published_at when already snake_case', () => {
     expect(normalizePost({ id: '1', title: 'T', published_at: '2026-01-01' }).published_at).toBe('2026-01-01');
+  });
+});
+
+describe('normalizeBrand', () => {
+  it('maps new profile fields', () => {
+    const raw = { id: 1, name: 'Dink Daily', target_audience: 'picklers', voice_and_tone: 'casual', mission: 'grow the sport' };
+    const result = normalizeBrand(raw);
+    expect(result.target_audience).toBe('picklers');
+    expect(result.voice_and_tone).toBe('casual');
+    expect(result.mission).toBe('grow the sport');
+  });
+
+  it('falls back brand_id field alias', () => {
+    const raw = { brand_id: 'abc', name: 'Test' };
+    const result = normalizeBrand(raw);
+    expect(result.id).toBe('abc');
+  });
+});
+
+describe('normalizeSubscriber', () => {
+  it('defaults type to lead', () => {
+    const raw = { id: 1, email: 'a@b.com' };
+    expect(normalizeSubscriber(raw).type).toBe('lead');
+  });
+
+  it('preserves customer type', () => {
+    const raw = { id: 1, email: 'a@b.com', type: 'customer', total_spend: 99.99 };
+    const result = normalizeSubscriber(raw);
+    expect(result.type).toBe('customer');
+    expect(result.total_spend).toBe(99.99);
+  });
+});
+
+describe('normalizeProduct', () => {
+  it('normalizes price to number', () => {
+    const raw = { id: 1, name: 'Course', price: '49.00' };
+    expect(normalizeProduct(raw).price).toBe(49);
   });
 });
